@@ -1,0 +1,74 @@
+name: Deploy Thumbnail Generator Lambda Node.js
+on:
+  workflow_dispatch:
+    inputs:
+      # Working directory input from user.
+      workdir:
+        type: choice
+        description: Choose the resource
+        options:
+          - src/nodejs/
+      # Deploy action you want to perform
+      action:
+        description: 'Deploy Action to Perform'
+        type: choice
+        options:
+          - Deploy_layer
+          - Deploy_lambda
+
+jobs:
+  aws_lambda_deploy:
+    name: 'Deploy Thumbnail Generator Lambda'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ github.event.inputs.workdir }}
+    steps:
+      # Checkout the repository to the GitHub Actions runner
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup node environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          registry-url: 'https://registry.yarnpkg.com'
+          cache: 'yarn'
+
+      - name: Configure AWS Credentials Action For GitHub Actions
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-2
+
+      - name: Deploy to AWS
+        id: deploy-to-aws
+        run: |
+          yarn install
+
+      - name: Package build
+        run: |
+          yarn build
+          yarn package
+          chmod -R 777 .
+      - name: Zip Layers
+        if: ${{ github.event.inputs.action == 'Deploy_layer' }}
+        run: |
+          zip -r dist/deps.zip dist/layers/deps-layer/
+          zip -r dist/services.zip dist/src/layers/service-layer/
+
+      - name: Zip Lambda
+        if: ${{ github.event.inputs.action == 'Deploy_lambda' }}
+        run: |
+          zip -r /dist/data-ingest-lambda.zip dist/src/handlers/data-ingest-lambda/
+
+      - name: Update lambda layer
+        if: ${{ github.event.inputs.action == 'Deploy_layer' }}
+        run: aws lambda update-function-code --function-name=data-ingest --zip-file=fileb://dist/deps.zip
+
+      - name: Update Lambda code
+        if: ${{ github.event.inputs.action == 'Deploy_lambda' }}
+        run: aws lambda update-function-code --function-name=data-ingest --zip-file=fileb://dist/data-ingest-lambda.zip
