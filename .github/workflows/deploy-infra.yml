@@ -96,7 +96,7 @@ jobs:
 
       - name: Check Path Module Path
         run: |
-          cd ${path.module}/../..
+          cd ./../..
           pwd
           ls -lrt
 
