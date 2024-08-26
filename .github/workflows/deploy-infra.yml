@@ -61,6 +61,7 @@ jobs:
           zip -r /dist/data-ingest-lambda.zip dist/src/handlers/data-ingest-lambda/
   terraform_apply:
     name: 'Terraform'
+    needs: create_app_archives
     if: ${{ github.event.inputs.action == 'Terraform_plan' || github.event.inputs.action == 'Terraform_apply' }}
     runs-on: ubuntu-latest
     defaults:
