@@ -8,6 +8,11 @@ on:
         description: Choose the resource
         options:
           - iac/nodejs/
+      app_dir:
+        type: choice
+        description: Choose the app directory
+        options:
+          - src/nodejs/
       # Terraform action you want to perform
       action:
         description: 'Terraform Action to Perform'
@@ -18,6 +23,42 @@ on:
           - Terraform_destroy
 
 jobs:
+  create_app_archives:
+    name: 'Create App Archives'
+    if: ${{ github.event.inputs.action == 'Terraform_plan' || github.event.inputs.action == 'Terraform_apply' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ github.event.inputs.app_dir }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup node environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          registry-url: 'https://registry.yarnpkg.com'
+          cache: 'yarn'
+      - name: Install dependencies
+        id: install
+        run: |
+          yarn install
+      - name: Package build
+        run: |
+          yarn build
+          yarn package
+          chmod -R 777 .
+      - name: Zip Layers
+        if: ${{ github.event.inputs.action == 'Deploy_layer' }}
+        run: |
+          zip -r dist/deps.zip dist/layers/deps-layer/
+          zip -r dist/services.zip dist/src/layers/service-layer/
+      - name: Zip Lambda
+        if: ${{ github.event.inputs.action == 'Deploy_lambda' }}
+        run: |
+          zip -r /dist/data-ingest-lambda.zip dist/src/handlers/data-ingest-lambda/
   terraform_apply:
     name: 'Terraform'
     if: ${{ github.event.inputs.action == 'Terraform_plan' || github.event.inputs.action == 'Terraform_apply' }}
@@ -26,10 +67,6 @@ jobs:
       run:
         working-directory: ${{ github.event.inputs.resource }}
     steps:
-      # Checkout the repository to the GitHub Actions runner
-      - name: Checkout
-        uses: actions/checkout@v4
-
       - name: Configure AWS Credentials Action For GitHub Actions
         uses: aws-actions/configure-aws-credentials@v1
         with:
