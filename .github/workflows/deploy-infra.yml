@@ -61,7 +61,7 @@ jobs:
       - name: Zip Lambda
         working-directory: ${{ github.event.inputs.app_dir }}
         run: |
-          zip -r /dist/data-ingest-lambda.zip dist/src/handlers/data-ingest-lambda/
+          zip -r dist/data-ingest-lambda.zip dist/src/handlers/data-ingest-lambda/
   terraform_apply:
     name: 'Terraform'
     needs: create_app_archives

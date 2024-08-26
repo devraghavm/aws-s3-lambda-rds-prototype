@@ -61,10 +61,12 @@ jobs:
       - name: Zip Lambda
         if: ${{ github.event.inputs.action == 'Deploy_lambda' }}
         run: |
-          zip -r /dist/data-ingest-lambda.zip dist/src/handlers/data-ingest-lambda/
+          zip -r dist/data-ingest-lambda.zip dist/src/handlers/data-ingest-lambda/
       - name: Update lambda layer
         if: ${{ github.event.inputs.action == 'Deploy_layer' }}
-        run: aws lambda update-function-code --function-name=data-ingest --zip-file=fileb://dist/deps.zip
+        run: |
+          aws lambda publish-layer-version --layer-name "shared_deps"  --license-info "MIT" --compatible-runtimes "nodejs20.x" --zip-file fileb://dist/deps.zip
+          aws lambda publish-layer-version --layer-name "shared_services" --license-info "MIT" --compatible-runtimes "nodejs20.x" --zip-file fileb://dist/services.zip
       - name: Update Lambda code
         if: ${{ github.event.inputs.action == 'Deploy_lambda' }}
         run: aws lambda update-function-code --function-name=data-ingest --zip-file=fileb://dist/data-ingest-lambda.zip
