@@ -54,12 +54,12 @@ jobs:
           cmd: package
           dir: ${{ github.event.inputs.app_dir }}
       - name: Zip Layers
-        if: ${{ github.event.inputs.action == 'Deploy_layer' }}
+        working-directory: ${{ github.event.inputs.app_dir }}
         run: |
           zip -r dist/deps.zip dist/layers/deps-layer/
           zip -r dist/services.zip dist/src/layers/service-layer/
       - name: Zip Lambda
-        if: ${{ github.event.inputs.action == 'Deploy_lambda' }}
+        working-directory: ${{ github.event.inputs.app_dir }}
         run: |
           zip -r /dist/data-ingest-lambda.zip dist/src/handlers/data-ingest-lambda/
   terraform_apply:
