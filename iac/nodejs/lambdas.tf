@@ -28,7 +28,7 @@ resource "aws_lambda_function" "lambda" {
   }
   environment {
     variables = {
-      RDS_PROXY_ENDPOINT = "${aws_rds_proxy.mssql_proxy.endpoint}"
+      RDS_PROXY_ENDPOINT = aws_db_proxy.mssql_proxy.endpoint
     }
   }
   layers = [
