@@ -69,10 +69,8 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ${{ github.event.inputs.resource }}
+        working-directory: ${{ github.workspace }}/${{ github.event.inputs.resource }}
     steps:
-      - name: Reuse Checked Out Code
-        uses: actions/checkout@v4
       - name: Print working directory
         run: pwd
       - name: Configure AWS Credentials Action For GitHub Actions
