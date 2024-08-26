@@ -78,9 +78,9 @@ data "aws_iam_policy_document" "rds_proxy_role_policies" {
 resource "aws_db_instance" "mssql_instance" {
   allocated_storage      = 20
   storage_type           = "gp2"
-  engine                 = "sqlserver-se"
+  engine                 = "sqlserver-ex"
   engine_version         = "16.00.4131.2.v1"
-  instance_class         = "db.t3.xlarge"
+  instance_class         = "db.t3.small"
   username               = jsondecode(aws_secretsmanager_secret_version.mssql_admin_credentials_version.secret_string)["username"]
   password               = jsondecode(aws_secretsmanager_secret_version.mssql_admin_credentials_version.secret_string)["password"]
   parameter_group_name   = "default.sqlserver-se-16.0"
