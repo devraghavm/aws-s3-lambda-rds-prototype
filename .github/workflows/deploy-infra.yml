@@ -73,6 +73,8 @@ jobs:
     steps:
       - name: Reuse Checked Out Code
         uses: actions/checkout@v4
+      - name: Print working directory
+        run: pwd
       - name: Configure AWS Credentials Action For GitHub Actions
         uses: aws-actions/configure-aws-credentials@v1
         with:
