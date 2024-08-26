@@ -45,10 +45,10 @@ resource "aws_security_group" "rds_proxy_sg" {
   vpc_id      = data.aws_vpc.default.id
 
   ingress = {
-    from_port          = 1433
-    to_port            = 1433
-    protocol           = "tcp"
-    security_group_ids = [aws_security_group.lambda_sg.id]
+    from_port       = 1433
+    to_port         = 1433
+    protocol        = "tcp"
+    security_groups = [aws_security_group.lambda_sg.id]
   }
   egress {
     from_port   = 0
@@ -71,10 +71,10 @@ resource "aws_security_group" "rds_sg" {
       cidr_blocks = ["0.0.0.0/0"]
     },
     {
-      from_port          = 1433
-      to_port            = 1433
-      protocol           = "tcp"
-      security_group_ids = [aws_security_group.lambda_sg.id]
+      from_port       = 1433
+      to_port         = 1433
+      protocol        = "tcp"
+      security_groups = [aws_security_group.lambda_sg.id]
     }
   ]
   egress {
