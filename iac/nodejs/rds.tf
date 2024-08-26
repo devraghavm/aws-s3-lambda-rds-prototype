@@ -5,7 +5,7 @@ resource "aws_db_proxy" "mssql_proxy" {
   idle_client_timeout    = 1800
   require_tls            = true
   role_arn               = aws_iam_role.iam_for_rds_proxy.arn
-  vpc_subnet_ids         = data.aws_subnet_ids.default.ids
+  vpc_subnet_ids         = data.aws_subnet.default.ids
   vpc_security_group_ids = [aws_security_group.rds_proxy_sg.id]
   auth {
     auth_scheme = "SECRETS"
