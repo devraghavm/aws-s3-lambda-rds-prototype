@@ -13,11 +13,11 @@ data "aws_subnets" "default" {
 
 # Create DB Subnet Group
 resource "aws_db_subnet_group" "default" {
-  name       = "default"
+  name       = "rds-subnet-group"
   subnet_ids = data.aws_subnets.default.ids
 
   tags = {
-    Name = "default"
+    Name = "rds-subnet-group"
   }
 }
 
@@ -69,6 +69,7 @@ resource "aws_security_group" "rds_proxy_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  depends_on = [aws_security_group.lambda_sg]
 }
 
 resource "aws_security_group" "rds_sg" {
@@ -90,6 +91,7 @@ resource "aws_security_group" "rds_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  depends_on = [aws_security_group.rds_proxy_sg]
 }
 
 
