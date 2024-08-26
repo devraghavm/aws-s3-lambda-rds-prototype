@@ -96,7 +96,7 @@ jobs:
 
       - name: Check Path Module Path
         run: |
-          cd ./../..
+          cd ./../../src/nodejs/
           pwd
           ls -lrt
 
