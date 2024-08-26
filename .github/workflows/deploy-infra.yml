@@ -39,19 +39,19 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
-          registry-url: 'https://registry.yarnpkg.com'
-          cache: 'yarn'
-          cache-dependency-path: ./yarn.lock
 
       - name: Install dependencies
-        id: install
-        run: |
-          yarn install
+        uses: borales/actions-yarn@v4
+        with:
+          cmd: install # will run `yarn install` command
+      - name: Application build
+        uses: borales/actions-yarn@v4
+        with:
+          cmd: build
       - name: Package build
-        run: |
-          yarn build
-          yarn package
-          chmod -R 777 .
+        uses: borales/actions-yarn@v4
+        with:
+          cmd: package
       - name: Zip Layers
         if: ${{ github.event.inputs.action == 'Deploy_layer' }}
         run: |
