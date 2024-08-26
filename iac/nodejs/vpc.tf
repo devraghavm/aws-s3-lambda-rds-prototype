@@ -4,14 +4,17 @@ data "aws_vpc" "default" {
 }
 
 # Get Default Subnets
-data "aws_subnet" "default" {
-  vpc_id = data.aws_vpc.default.id
+data "aws_subnets" "default" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
 }
 
 # Create DB Subnet Group
 resource "aws_db_subnet_group" "default" {
   name       = "default"
-  subnet_ids = data.aws_subnet.default.ids
+  subnet_ids = data.aws_subnets.default.ids
 
   tags = {
     Name = "default"

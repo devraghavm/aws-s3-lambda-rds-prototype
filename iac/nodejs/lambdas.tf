@@ -23,7 +23,7 @@ resource "aws_lambda_function" "lambda" {
   runtime          = "nodejs20.x"
   timeout          = 15
   vpc_config {
-    subnet_ids         = data.aws_subnet.default.ids
+    subnet_ids         = data.aws_subnets.default.ids
     security_group_ids = [aws_security_group.lambda_sg.id]
   }
   environment {
