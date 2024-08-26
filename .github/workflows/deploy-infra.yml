@@ -42,14 +42,17 @@ jobs:
         uses: borales/actions-yarn@v4
         with:
           cmd: install # will run `yarn install` command
+          dir: ${{ github.event.inputs.app_dir }}
       - name: Application build
         uses: borales/actions-yarn@v4
         with:
           cmd: build
+          dir: ${{ github.event.inputs.app_dir }}
       - name: Package build
         uses: borales/actions-yarn@v4
         with:
           cmd: package
+          dir: ${{ github.event.inputs.app_dir }}
       - name: Zip Layers
         if: ${{ github.event.inputs.action == 'Deploy_layer' }}
         run: |
