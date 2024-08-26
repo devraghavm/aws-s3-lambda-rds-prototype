@@ -94,6 +94,12 @@ jobs:
       - name: Terraform Format
         run: terraform fmt -check
 
+      - name: Check Path Module Path
+        run: |
+          cd ${path.module}/../..
+          pwd
+          ls -lrt
+
       # Generates an execution plan for Terraform
       # Make sure AWS_ACCOUNT_ID is set in your repository secrets
       - name: Terraform Plan
