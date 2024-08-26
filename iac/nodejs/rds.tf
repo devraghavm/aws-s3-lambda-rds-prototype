@@ -81,8 +81,8 @@ resource "aws_db_instance" "mssql_instance" {
   engine                 = "sqlserver-se"
   engine_version         = "16.00.4131.2.v1"
   instance_class         = "db.t3.xlarge"
-  username               = jsondecode(aws_secretsmanager_secret_version.mssql_credentials_version.secret_string)["username"]
-  password               = jsondecode(aws_secretsmanager_secret_version.mssql_credentials_version.secret_string)["password"]
+  username               = jsondecode(aws_secretsmanager_secret_version.mssql_admin_credentials_version.secret_string)["username"]
+  password               = jsondecode(aws_secretsmanager_secret_version.mssql_admin_credentials_version.secret_string)["password"]
   parameter_group_name   = "default.sqlserver-se-16.0"
   skip_final_snapshot    = true
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
