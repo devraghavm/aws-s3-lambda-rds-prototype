@@ -55,8 +55,8 @@ jobs:
           dir: ${{ github.event.inputs.app_dir }}
       - uses: actions/upload-artifact@master
         with:
-          name: updated-app
-          path: ${{ github.workspace }}
+          name: dist
+          path: ${{ github.event.inputs.app_dir }}/dist
       # - name: Zip Layers
       #   working-directory: ${{ github.event.inputs.app_dir }}
       #   run: |
@@ -75,12 +75,13 @@ jobs:
       run:
         working-directory: ${{ github.event.inputs.resource }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
       - uses: actions/checkout@master
-
       - uses: actions/download-artifact@master
         with:
-          name: updated-app
-          path: ${{ github.workspace }}
+          name: dist
+          path: ${{ github.workspace}}/${{ github.event.inputs.app_dir }}/dist
       - name: Print working directory
         run: pwd
       - name: Configure AWS Credentials Action For GitHub Actions
