@@ -44,13 +44,22 @@ resource "aws_security_group" "rds_proxy_sg" {
   description = "Allow access to RDS Proxy"
   vpc_id      = data.aws_vpc.default.id
 
-  ingress = {
-    from_port       = 1433
-    to_port         = 1433
-    protocol        = "tcp"
-    cidr_blocks     = ["0.0.0.0/0"]
-    security_groups = [aws_security_group.lambda_sg.id]
-  }
+  ingress = [
+    {
+      from_port   = 1433
+      to_port     = 1433
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+    },
+    {
+      from_port = 1433
+      to_port   = 1433
+      protocol  = "tcp"
+      security_groups = [
+        "${aws_security_group.lambda_sg.id}",
+      ]
+    }
+  ]
   egress {
     from_port   = 0
     to_port     = 0
@@ -65,11 +74,12 @@ resource "aws_security_group" "rds_sg" {
   vpc_id      = data.aws_vpc.default.id
 
   ingress = {
-    from_port       = 1433
-    to_port         = 1433
-    protocol        = "tcp"
-    cidr_blocks     = ["0.0.0.0/0"]
-    security_groups = [aws_security_group.lambda_sg.id]
+    from_port = 1433
+    to_port   = 1433
+    protocol  = "tcp"
+    security_groups = [
+      "${aws_security_group.rds_proxy_sg.id}",
+    ]
   }
   egress {
     from_port   = 0
