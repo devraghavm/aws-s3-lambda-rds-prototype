@@ -71,6 +71,8 @@ jobs:
       run:
         working-directory: ${{ github.event.inputs.resource }}
     steps:
+      - name: Reuse Checked Out Code
+        uses: actions/checkout@v4
       - name: Configure AWS Credentials Action For GitHub Actions
         uses: aws-actions/configure-aws-credentials@v1
         with:
