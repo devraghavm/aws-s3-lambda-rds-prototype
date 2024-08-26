@@ -35,7 +35,11 @@ resource "aws_lambda_function" "lambda" {
     aws_lambda_layer_version.lambda_deps_layer.arn,
     aws_lambda_layer_version.lambda_services_layer.arn
   ]
-  depends_on = [aws_iam_role.iam_for_lambda, data.archive_file.data_ingest_lambda_zip]
+  depends_on = [
+    aws_iam_role.iam_for_lambda,
+    data.archive_file.data_ingest_lambda_zip,
+    aws_db_proxy.mssql_proxy
+  ]
 }
 
 resource "aws_sns_topic_subscription" "topic_subscription" {
