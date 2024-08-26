@@ -12,7 +12,7 @@ resource "aws_secretsmanager_secret_version" "mssql_admin_credentials_version" {
 }
 
 data "aws_kms_key" "by_alias" {
-  key_id = "aws/secretsmanager"
+  key_id = "alias/aws/secretsmanager"
 }
 
 resource "aws_secretsmanager_secret" "mssql_lambdauser_credentials" {
