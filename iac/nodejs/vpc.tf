@@ -75,7 +75,7 @@ resource "aws_security_group" "rds_sg" {
   description = "Allow access to RDS Proxy"
   vpc_id      = data.aws_vpc.default.id
 
-  ingress = {
+  ingress {
     from_port = 1433
     to_port   = 1433
     protocol  = "tcp"
