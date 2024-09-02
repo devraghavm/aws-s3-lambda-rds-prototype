@@ -10,7 +10,7 @@
     "test": "jest --clearCache --coverage",
     "lint": "eslint \"src/**/*.{json,js,jsx,ts,tsx}\" && tsc --noemit",
     "prettier": "prettier \"src/**/*.{json,js,jsx,ts,tsx}\" --write",
-    "package": "mkdir -p dist/layers/deps-layer && cp package*.json dist/layers/deps-layer/ && cp yarn.lock dist/layers/deps-layer/ && cd dist/layers/deps-layer && yarn --frozen-lockfile"
+    "package": "mkdir -p dist/layers/deps-layer && cp package*.json dist/layers/deps-layer/ && cp yarn.lock dist/layers/deps-layer/ && cd dist/layers/deps-layer && yarn install --production --frozen-lockfile"
   },
   "devDependencies": {
     "@swc/cli": "^0.4.0",
