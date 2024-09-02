@@ -6,7 +6,10 @@ resource "aws_lambda_layer_version" "lambda_deps_layer" {
   source_code_hash = data.archive_file.deps_layer_code_zip.output_base64sha256
 
   compatible_runtimes = ["nodejs20.x"]
-  depends_on          = [data.archive_file.deps_layer_code_zip]
+  depends_on = [
+    data.archive_file.deps_layer_code_zip,
+    aws_s3_object.deps_zip
+  ]
 }
 
 resource "aws_lambda_layer_version" "lambda_services_layer" {
@@ -17,5 +20,8 @@ resource "aws_lambda_layer_version" "lambda_services_layer" {
   source_code_hash = data.archive_file.services_layer_code_zip.output_base64sha256
 
   compatible_runtimes = ["nodejs20.x"]
-  depends_on          = [data.archive_file.services_layer_code_zip]
+  depends_on = [
+    data.archive_file.services_layer_code_zip,
+    aws_s3_object.services_zip
+  ]
 }
