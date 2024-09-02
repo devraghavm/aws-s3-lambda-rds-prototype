@@ -107,7 +107,7 @@ jobs:
         run: |
           cd ./../../src/nodejs/
           pwd
-          ls -lrt
+          ls -lR
 
       # Generates an execution plan for Terraform
       # Make sure AWS_ACCOUNT_ID is set in your repository secrets
