@@ -122,6 +122,7 @@ jobs:
         run: terraform apply -auto-approve -input=false  plan
   terraform_destroy:
     name: 'Terraform_destroy'
+    needs: create_app_archives
     if: ${{ github.event.inputs.action == 'Terraform_destroy' }}
     runs-on: ubuntu-latest
     defaults:
