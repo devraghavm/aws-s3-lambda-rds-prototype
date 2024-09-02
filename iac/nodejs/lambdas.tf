@@ -8,12 +8,6 @@ resource "aws_iam_role" "iam_for_lambda" {
   depends_on = [data.aws_iam_policy_document.assume_role, data.aws_iam_policy_document.lambda_role_policies]
 }
 
-data "archive_file" "data_ingest_lambda_zip" {
-  type        = "zip"
-  source_dir  = "${path.module}/../../src/nodejs/src/handlers/data-ingest-lambda/"
-  output_path = "${path.module}/../../src/nodejs/dist/data-ingest-lambda.zip"
-}
-
 resource "aws_lambda_function" "lambda" {
   filename         = data.archive_file.data_ingest_lambda_zip.output_path
   source_code_hash = data.archive_file.data_ingest_lambda_zip.output_base64sha256

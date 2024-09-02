@@ -23,9 +23,10 @@ resource "aws_db_subnet_group" "default" {
 
 # Create VPC Endpoint for Lambda
 resource "aws_vpc_endpoint" "lambda_vpc_endpoint" {
-  vpc_id       = data.aws_vpc.default.id
-  service_name = "com.amazonaws.${var.region}.lambda"
-  depends_on   = [aws_db_subnet_group.default]
+  vpc_id            = data.aws_vpc.default.id
+  service_name      = "com.amazonaws.${var.region}.lambda"
+  vpc_endpoint_type = "Interface"
+  depends_on        = [aws_db_subnet_group.default]
 }
 
 # Create Security Group for RDS
