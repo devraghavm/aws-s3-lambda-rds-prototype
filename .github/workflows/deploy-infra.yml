@@ -25,7 +25,7 @@ on:
 jobs:
   create_app_archives:
     name: 'Create App Archives'
-    if: ${{ github.event.inputs.action == 'Terraform_plan' || github.event.inputs.action == 'Terraform_apply' }}
+    if: ${{ github.event.inputs.action == 'Terraform_plan' || github.event.inputs.action == 'Terraform_apply' || github.event.inputs.action == 'Terraform_destroy' }}
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -130,7 +130,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
+      - uses: actions/checkout@master
+      - uses: actions/download-artifact@master
+        with:
+          name: dist
+          path: ${{ github.workspace}}/${{ github.event.inputs.app_dir }}/dist
+      - name: Print working directory
+        run: pwd
       - name: Configure AWS Credentials Action For GitHub Actions
         uses: aws-actions/configure-aws-credentials@v1
         with:
