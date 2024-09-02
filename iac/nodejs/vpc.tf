@@ -30,7 +30,7 @@ resource "aws_vpc_endpoint" "lambda_vpc_endpoint" {
 
 # Create Security Group for RDS
 resource "aws_security_group" "lambda_sg" {
-  name        = "lambda_security_group"
+  name        = "lambda_sg"
   description = "Allow access Lambda"
   vpc_id      = data.aws_vpc.default.id
 
@@ -43,7 +43,7 @@ resource "aws_security_group" "lambda_sg" {
 }
 
 resource "aws_security_group" "rds_proxy_sg" {
-  name        = "lambda_security_group"
+  name        = "rds_proxy_sg"
   description = "Allow access to RDS Proxy"
   vpc_id      = data.aws_vpc.default.id
 
@@ -71,7 +71,7 @@ resource "aws_security_group" "rds_proxy_sg" {
 }
 
 resource "aws_security_group" "rds_sg" {
-  name        = "lambda_security_group"
+  name        = "rds_sg"
   description = "Allow access to RDS Proxy"
   vpc_id      = data.aws_vpc.default.id
 
