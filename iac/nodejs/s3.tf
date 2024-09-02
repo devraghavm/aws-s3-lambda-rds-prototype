@@ -29,7 +29,7 @@ resource "aws_s3_object" "deps_zip" {
   bucket = aws_s3_bucket.cdle-lambda-archives.bucket
   key    = "layers/deps.zip"
   source = data.archive_file.deps_layer_code_zip.output_path
-  etag   = data.archive_file.deps_layer_code_zip.output_path.output_base64sha256
+  etag   = data.archive_file.deps_layer_code_zip.output_base64sha256
 
 
   depends_on = [
@@ -46,17 +46,5 @@ resource "aws_s3_object" "services_zip" {
 
   depends_on = [
     data.archive_file.services_layer_code_zip,
-  ]
-}
-
-resource "aws_s3_object" "lambda_zip" {
-  bucket = aws_s3_bucket.cdle-lambda-archives.bucket
-  key    = "lambda/data-ingest-lambda.zip"
-  source = data.archive_file.data_ingest_lambda_zip.output_path
-  etag   = data.archive_file.data_ingest_lambda_zip.output_base64sha256
-
-
-  depends_on = [
-    data.archive_file.data_ingest_lambda_zip,
   ]
 }
