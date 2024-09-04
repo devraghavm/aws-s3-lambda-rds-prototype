@@ -15,6 +15,16 @@ on:
         type: string
         description: 'App directory'
         required: true
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        description: 'AWS Access Key ID'
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        description: 'AWS Secret Access Key'
+        required: true
+      AWS_ACCOUNT_ID:
+        description: 'AWS Account ID'
+        required: true
 
 jobs:
   terraform_destroy:
