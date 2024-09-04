@@ -33,7 +33,7 @@ on:
 jobs:
   create_app_archives:
     name: 'Create App Archives'
-    uses: ./.github/actions/app/create-app-archives.yml
+    uses: ./.github/actions/archive/create-app-archives.yml
     with:
       app_dir: ${{ github.event.inputs.app_dir }}
   terraform_apply:
