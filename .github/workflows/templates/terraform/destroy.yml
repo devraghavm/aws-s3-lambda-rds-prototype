@@ -9,6 +9,8 @@ jobs:
       run:
         working-directory: ${{ github.event.inputs.resource }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
       - uses: actions/checkout@master
       - uses: actions/download-artifact@master
         with:

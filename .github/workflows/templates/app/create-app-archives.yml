@@ -10,6 +10,8 @@ jobs:
       run:
         working-directory: ${{ github.event.inputs.app_dir }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: Setup node environment
         uses: actions/setup-node@v4
         with:

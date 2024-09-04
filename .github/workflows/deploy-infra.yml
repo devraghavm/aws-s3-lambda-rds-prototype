@@ -33,8 +33,6 @@ jobs:
   create_app_archives:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
       - name: Run Create App Archives Workflow
         uses: ./.github/workflows/templates/app/create-app-archives.yml
   terraform_apply:
@@ -43,8 +41,6 @@ jobs:
     if: ${{ github.event.inputs.action == 'Terraform_plan' || github.event.inputs.action == 'Terraform_apply' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
       - name: Run Create App Archives Workflow
         uses: ./.github/workflows/templates/terraform/apply.yml
   terraform_destroy:
@@ -53,7 +49,5 @@ jobs:
     if: ${{ github.event.inputs.action == 'Terraform_destroy' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
       - name: Run Create App Archives Workflow
         uses: ./.github/workflows/templates/terraform/destroy.yml
