@@ -37,6 +37,7 @@ jobs:
       app_dir: ${{ github.event.inputs.app_dir }}
   terraform_apply:
     name: 'Terraform'
+    needs: create_app_archives
     uses: ./.github/workflows/terraform-apply.yml
     with:
       action: ${{ github.event.inputs.action }}
@@ -44,6 +45,7 @@ jobs:
       app_dir: ${{ github.event.inputs.app_dir }}
   terraform_destroy:
     name: 'Terraform Destroy'
+    needs: create_app_archives
     uses: ./.github/workflows/terraform-destroy.yml
     with:
       action: ${{ github.event.inputs.action }}
