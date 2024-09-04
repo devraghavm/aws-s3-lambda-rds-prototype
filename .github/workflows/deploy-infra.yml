@@ -33,13 +33,13 @@ on:
 jobs:
   create_app_archives:
     name: 'Create App Archives'
-    uses: ./.github/actions/create-app-archives.yml
+    uses: ./.github/workflows/create-app-archives.yml
     with:
       app_dir: ${{ github.event.inputs.app_dir }}
   terraform_apply:
     name: 'Terraform'
     needs: create_app_archives
-    uses: ./.github/actions/terraform/terraform-apply.yml
+    uses: ./.github/workflows/terraform-apply.yml
     with:
       action: ${{ github.event.inputs.action }}
       resource: ${{ github.event.inputs.resource }}
@@ -51,7 +51,7 @@ jobs:
   terraform_destroy:
     name: 'Terraform Destroy'
     needs: create_app_archives
-    uses: ./.github/actions/terraform/terraform-destroy.yml
+    uses: ./.github/workflows/terraform-destroy.yml
     with:
       action: ${{ github.event.inputs.action }}
       resource: ${{ github.event.inputs.resource }}
