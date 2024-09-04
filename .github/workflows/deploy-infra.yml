@@ -2,6 +2,13 @@ name: Deploy Infrastructure
 on:
   workflow_dispatch:
     inputs:
+      iac_tool:
+        type: choice
+        description: Choose the IAC tool
+        options:
+          - terraform
+          - cdk
+        default: cdk
       # Working directory input from user.
       resource:
         type: choice
@@ -24,140 +31,29 @@ on:
 
 jobs:
   create_app_archives:
-    name: 'Create App Archives'
-    if: ${{ github.event.inputs.action == 'Terraform_plan' || github.event.inputs.action == 'Terraform_apply' || github.event.inputs.action == 'Terraform_destroy' }}
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ github.event.inputs.app_dir }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Setup node environment
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20.x'
-
-      - name: Install dependencies
-        uses: borales/actions-yarn@v4
-        with:
-          cmd: install # will run `yarn install` command
-          dir: ${{ github.event.inputs.app_dir }}
-      - name: Application build
-        uses: borales/actions-yarn@v4
-        with:
-          cmd: build
-          dir: ${{ github.event.inputs.app_dir }}
-      - name: Package build
-        uses: borales/actions-yarn@v4
-        with:
-          cmd: package
-          dir: ${{ github.event.inputs.app_dir }}
-      - uses: actions/upload-artifact@master
-        with:
-          name: dist
-          path: ${{ github.event.inputs.app_dir }}/dist
-      # - name: Zip Layers
-      #   working-directory: ${{ github.event.inputs.app_dir }}
-      #   run: |
-      #     zip -r dist/deps.zip dist/layers/deps-layer/
-      #     zip -r dist/services.zip dist/src/layers/service-layer/
-      # - name: Zip Lambda
-      #   working-directory: ${{ github.event.inputs.app_dir }}
-      #   run: |
-      #     zip -r dist/data-ingest-lambda.zip dist/src/handlers/data-ingest-lambda/
+      - name: Run Create App Archives Workflow
+        uses: ./.github/workflows/templates/app/create-app-archives.yml
   terraform_apply:
     name: 'Terraform'
     needs: create_app_archives
     if: ${{ github.event.inputs.action == 'Terraform_plan' || github.event.inputs.action == 'Terraform_apply' }}
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ github.event.inputs.resource }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - uses: actions/checkout@master
-      - uses: actions/download-artifact@master
-        with:
-          name: dist
-          path: ${{ github.workspace}}/${{ github.event.inputs.app_dir }}/dist
-      - name: Print working directory
-        run: pwd
-      - name: Configure AWS Credentials Action For GitHub Actions
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-west-2
-
-      # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-
-      # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
-      - name: Terraform Init
-        run: terraform init
-
-      # Checks that all Terraform configuration files adhere to a canonical format
-      - name: Terraform Format
-        run: terraform fmt -check
-
-      - name: Check Path Module Path
-        run: |
-          cd ./../../src/nodejs/src/
-          pwd
-          ls -lR
-
-      # Generates an execution plan for Terraform
-      # Make sure AWS_ACCOUNT_ID is set in your repository secrets
-      - name: Terraform Plan
-        run: |
-          terraform plan -out=plan -input=false -var-file="variables.tfvars" -var account_id=${{ secrets.AWS_ACCOUNT_ID }}
-
-        # On push to "main", build or change infrastructure according to Terraform configuration files
-        # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
-      - name: Terraform Apply
-        if: ${{ github.event.inputs.action == 'Terraform_apply' }}
-        run: terraform apply -auto-approve -input=false  plan
+      - name: Run Create App Archives Workflow
+        uses: ./.github/workflows/templates/terraform/apply.yml
   terraform_destroy:
     name: 'Terraform_destroy'
     needs: create_app_archives
     if: ${{ github.event.inputs.action == 'Terraform_destroy' }}
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ github.event.inputs.resource }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - uses: actions/checkout@master
-      - uses: actions/download-artifact@master
-        with:
-          name: dist
-          path: ${{ github.workspace}}/${{ github.event.inputs.app_dir }}/dist
-      - name: Print working directory
-        run: pwd
-      - name: Configure AWS Credentials Action For GitHub Actions
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-west-2
-
-      # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-
-      # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
-      - name: Terraform Init
-        run: terraform init
-
-      - name: Terraform Destroy
-        id: destroy
-        working-directory: ${{ github.event.inputs.resource }}
-        run: terraform destroy -auto-approve -var-file=variables.tfvars -var account_id=${{ secrets.AWS_ACCOUNT_ID }}
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: us-west-2
+      - name: Run Create App Archives Workflow
+        uses: ./.github/workflows/templates/terraform/destroy.yml

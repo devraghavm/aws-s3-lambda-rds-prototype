@@ -1,0 +1,45 @@
+name: 'Create App Archives'
+
+on: [workflow_call]
+
+jobs:
+  create_app_archives:
+    name: 'Create App Archives'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ github.event.inputs.app_dir }}
+    steps:
+      - name: Setup node environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Install dependencies
+        uses: borales/actions-yarn@v4
+        with:
+          cmd: install # will run `yarn install` command
+          dir: ${{ github.event.inputs.app_dir }}
+      - name: Application build
+        uses: borales/actions-yarn@v4
+        with:
+          cmd: build
+          dir: ${{ github.event.inputs.app_dir }}
+      - name: Package build
+        uses: borales/actions-yarn@v4
+        with:
+          cmd: package
+          dir: ${{ github.event.inputs.app_dir }}
+      - uses: actions/upload-artifact@master
+        with:
+          name: dist
+          path: ${{ github.event.inputs.app_dir }}/dist
+      # - name: Zip Layers
+      #   working-directory: ${{ github.event.inputs.app_dir }}
+      #   run: |
+      #     zip -r dist/deps.zip dist/layers/deps-layer/
+      #     zip -r dist/services.zip dist/src/layers/service-layer/
+      # - name: Zip Lambda
+      #   working-directory: ${{ github.event.inputs.app_dir }}
+      #   run: |
+      #     zip -r dist/data-ingest-lambda.zip dist/src/handlers/data-ingest-lambda/
