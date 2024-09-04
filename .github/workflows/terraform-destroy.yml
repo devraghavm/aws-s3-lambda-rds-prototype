@@ -1,13 +1,29 @@
 name: 'Terrform Destroy'
 
-on: [workflow_call]
+on:
+  workflow_call:
+    inputs:
+      action:
+        type: string
+        description: 'Terraform Action to Perform'
+        required: true
+      resource:
+        type: string
+        description: 'Resource'
+        required: true
+      app_dir:
+        type: string
+        description: 'App directory'
+        required: true
 
 jobs:
   terraform_destroy:
     name: 'Terraform_destroy'
+    runs-on: ubuntu-latest
+    if: ${{ inputs.action == 'Terraform_destroy' }}
     defaults:
       run:
-        working-directory: ${{ github.event.inputs.resource }}
+        working-directory: ${{ inputs.resource }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -15,7 +31,7 @@ jobs:
       - uses: actions/download-artifact@master
         with:
           name: dist
-          path: ${{ github.workspace}}/${{ github.event.inputs.app_dir }}/dist
+          path: ${{ github.workspace}}/${{ inputs.app_dir }}/dist
       - name: Print working directory
         run: pwd
       - name: Configure AWS Credentials Action For GitHub Actions
@@ -35,7 +51,7 @@ jobs:
 
       - name: Terraform Destroy
         id: destroy
-        working-directory: ${{ github.event.inputs.resource }}
+        working-directory: ${{ inputs.resource }}
         run: terraform destroy -auto-approve -var-file=variables.tfvars -var account_id=${{ secrets.AWS_ACCOUNT_ID }}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}

@@ -31,23 +31,21 @@ on:
 
 jobs:
   create_app_archives:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Run Create App Archives Workflow
-        uses: ./.github/workflows/templates/app/create-app-archives.yml
+    name: 'Create App Archives'
+    uses: ./.github/workflows/create-app-archives.yml
+    with:
+      app_dir: ${{ github.event.inputs.app_dir }}
   terraform_apply:
     name: 'Terraform'
-    needs: create_app_archives
-    if: ${{ github.event.inputs.action == 'Terraform_plan' || github.event.inputs.action == 'Terraform_apply' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Run Create App Archives Workflow
-        uses: ./.github/workflows/templates/terraform/apply.yml
+    uses: ./.github/workflows/terraform-apply.yml
+    with:
+      action: ${{ github.event.inputs.action }}
+      resource: ${{ github.event.inputs.resource }}
+      app_dir: ${{ github.event.inputs.app_dir }}
   terraform_destroy:
-    name: 'Terraform_destroy'
-    needs: create_app_archives
-    if: ${{ github.event.inputs.action == 'Terraform_destroy' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Run Create App Archives Workflow
-        uses: ./.github/workflows/templates/terraform/destroy.yml
+    name: 'Terraform Destroy'
+    uses: ./.github/workflows/terraform-destroy.yml
+    with:
+      action: ${{ github.event.inputs.action }}
+      resource: ${{ github.event.inputs.resource }}
+      app_dir: ${{ github.event.inputs.app_dir }}

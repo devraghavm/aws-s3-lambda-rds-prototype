@@ -1,6 +1,12 @@
 name: 'Create App Archives'
 
-on: [workflow_call]
+on:
+  workflow_call:
+    inputs:
+      app_dir:
+        type: string
+        description: 'App directory'
+        required: true
 
 jobs:
   create_app_archives:
@@ -8,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ${{ github.event.inputs.app_dir }}
+        working-directory: ${{ inputs.app_dir }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -21,27 +27,27 @@ jobs:
         uses: borales/actions-yarn@v4
         with:
           cmd: install # will run `yarn install` command
-          dir: ${{ github.event.inputs.app_dir }}
+          dir: ${{ inputs.app_dir }}
       - name: Application build
         uses: borales/actions-yarn@v4
         with:
           cmd: build
-          dir: ${{ github.event.inputs.app_dir }}
+          dir: ${{ inputs.app_dir }}
       - name: Package build
         uses: borales/actions-yarn@v4
         with:
           cmd: package
-          dir: ${{ github.event.inputs.app_dir }}
+          dir: ${{ inputs.app_dir }}
       - uses: actions/upload-artifact@master
         with:
           name: dist
-          path: ${{ github.event.inputs.app_dir }}/dist
+          path: ${{ inputs.app_dir }}/dist
       # - name: Zip Layers
-      #   working-directory: ${{ github.event.inputs.app_dir }}
+      #   working-directory: ${{ inputs.app_dir }}
       #   run: |
       #     zip -r dist/deps.zip dist/layers/deps-layer/
       #     zip -r dist/services.zip dist/src/layers/service-layer/
       # - name: Zip Lambda
-      #   working-directory: ${{ github.event.inputs.app_dir }}
+      #   working-directory: ${{ inputs.app_dir }}
       #   run: |
       #     zip -r dist/data-ingest-lambda.zip dist/src/handlers/data-ingest-lambda/
