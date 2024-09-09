@@ -1,11 +1,3 @@
--- Create the database if it doesn't exist
-IF NOT EXISTS (SELECT *
-FROM sys.databases
-WHERE name = 'fti940db')
-BEGIN
-  CREATE DATABASE fti940db;
-END;
-
 -- Use the database
 USE fti940db;
 
@@ -27,7 +19,7 @@ BEGIN
     employer_email VARCHAR(100) NOT NULL,
     total_paid_wages DECIMAL(18, 2) NOT NULL,
     PRIMARY KEY (fein)
-  )
+  );
 END;
 
 IF EXISTS (SELECT *

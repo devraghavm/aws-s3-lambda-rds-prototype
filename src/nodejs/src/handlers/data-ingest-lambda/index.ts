@@ -1,13 +1,17 @@
-import { S3Event, SNSEvent, Context, Callback } from "aws-lambda";
-import { S3 } from "@aws-sdk/client-s3";
 import {
-  GetSecretValueCommandInput,
-  SecretsManager,
-} from "@aws-sdk/client-secrets-manager";
+  S3Event,
+  SNSEvent,
+  Context,
+  Callback,
+  S3EventRecord,
+} from "aws-lambda";
+import { S3 } from "@aws-sdk/client-s3";
 import { SNS } from "@aws-sdk/client-sns";
 import csv from "csv-parser";
 import { Readable } from "stream";
-import * as sql from "mssql";
+import { CsvRow } from "../../layers/service-layer/interfaces/csv.row";
+import { Service } from "../../layers/service-layer/service"; // Import the Service class
+import { IResult } from "mssql";
 
 // Configure AWS SDK
 // JS SDK v3 does not support global configuration.
@@ -22,31 +26,6 @@ const sns = new SNS({
   region: "us-west-2",
 });
 
-interface S3EventRecord {
-  s3: {
-    bucket: {
-      name: string;
-    };
-    object: {
-      key: string;
-    };
-  };
-}
-
-interface CsvRow {
-  // Define the structure of your CSV rows here
-  fein: string;
-  employer_name: string;
-  employer_address: string;
-  employer_city: string;
-  employer_state: string;
-  employer_zip: string;
-  employer_phone: string;
-  employer_email: string;
-  total_paid_wages: string;
-  // Add more columns as needed
-}
-
 export const handler = async (
   event: SNSEvent,
   context: Context,
@@ -54,33 +33,6 @@ export const handler = async (
 ) => {
   try {
     // Process SNS event
-    const dbSecretArn = process.env.DB_SECRET_ARN || "";
-    const secretManager = new SecretsManager({
-      region: "us-west-2",
-    });
-    const secretParams: GetSecretValueCommandInput = {
-      SecretId: dbSecretArn,
-    };
-    const dbSecret = await secretManager.getSecretValue(secretParams);
-    const secretString = dbSecret.SecretString || "";
-
-    if (!secretString) {
-      throw new Error("secret string is empty");
-    }
-    const { password, username } = JSON.parse(secretString);
-    const config: sql.config = {
-      user: username || "",
-      password: password,
-      port: 1433,
-      server: process.env.DB_ENDPOINT_ADDRESS || "",
-      database: process.env.DB_NAME || "",
-      parseJSON: true,
-      options: {
-        enableArithAbort: true,
-        encrypt: true,
-        trustServerCertificate: true,
-      },
-    };
     if (event.Records && event.Records[0].Sns) {
       const s3Event: S3Event = JSON.parse(event.Records[0].Sns.Message);
       const record: S3EventRecord = s3Event.Records[0];
@@ -108,45 +60,20 @@ export const handler = async (
         .on("data", (data: CsvRow) => rows.push(data))
         .on("end", async () => {
           console.log("CSV data parsed:", rows);
-          try {
-            const pool = await sql.connect(config);
-            console.log("Type of rows", typeof rows);
-            for (const row of rows) {
-              console.log("Inserting row", row);
-              try {
-                const request = new sql.Request(pool);
-                const result = await request.query(
-                  `INSERT INTO EmployerData (fein, employer_name, employer_address, employer_city, employer_state, employer_zip, employer_phone, employer_email, total_paid_wages) 
-                  VALUES ('${row.fein}', '${row.employer_name}', '${row.employer_address}', '${row.employer_city}', '${row.employer_state}', '${row.employer_zip}', '${row.employer_phone}', '${row.employer_email}', '${row.total_paid_wages}')`,
-                );
-                console.log("Inserted row", result);
-              } catch (error) {
-                console.error("Error inserting row", error);
-              }
-            }
-            pool.close();
+          rows.forEach(async (row) => {
+            console.log("Inserting row", row);
+            const service = new Service(); // Use lowercase 'service'
+            const result = await service.create(row);
+            console.log("Inserted row", result);
             callback(null, "Data inserted successfully");
-          } catch (error) {
-            console.error("Error connecting to the database", error);
-            callback(error as Error);
-          }
+          });
         });
     } else {
-      try {
-        // Process non-SNS event
-        console.log("Processing non-SNS event");
-        const pool = await sql.connect(config);
-        const request = new sql.Request(pool);
-        const result: sql.IResult<CsvRow> = await request.query(
-          "SELECT * FROM EmployerData",
-        );
-        const rows: CsvRow[] = result.recordset;
-        pool.close();
-        callback(null, JSON.stringify(rows));
-      } catch (error) {
-        console.error("Error connecting to the database", error);
-        callback(error as Error);
-      }
+      // Process non-SNS event
+      const service = new Service(); // Use lowercase 'service'
+      const result: IResult<CsvRow> = await service.readAll();
+      const rows: CsvRow[] = result.recordset;
+      callback(null, JSON.stringify(rows));
     }
   } catch (error) {
     console.error("Error processing event", error);
