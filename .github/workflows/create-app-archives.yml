@@ -51,3 +51,9 @@ jobs:
       #   working-directory: ${{ inputs.app_dir }}
       #   run: |
       #     zip -r dist/data-ingest-lambda.zip dist/src/handlers/data-ingest-lambda/
+      # - name: Cleanup Directories
+      #   working-directory: ${{ inputs.app_dir }}
+      #   run: |
+      #     rm -rf dist/layers/deps-layer/
+      #     rm -rf dist/src/layers/service-layer/
+      #     rm -rf dist/src/handlers/data-ingest-lambda/

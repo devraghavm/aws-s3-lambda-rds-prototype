@@ -15,7 +15,9 @@ on:
         type: choice
         description: Choose the resource
         options:
-          - iac/nodejs/
+          - iac/terraform/nodejs/
+          - iac/cdk/nodejs/
+        default: iac/cdk/nodejs/
       app_dir:
         type: choice
         description: Choose the app directory
@@ -29,6 +31,10 @@ on:
           - Terraform_plan
           - Terraform_apply
           - Terraform_destroy
+          - Cdk_synth
+          - Cdk_apply
+          - Cdk_destroy
+        default: Cdk_synth
 
 jobs:
   create_app_archives:
@@ -52,6 +58,30 @@ jobs:
     name: 'Terraform Destroy'
     needs: create_app_archives
     uses: ./.github/workflows/terraform-destroy.yml
+    with:
+      action: ${{ github.event.inputs.action }}
+      resource: ${{ github.event.inputs.resource }}
+      app_dir: ${{ github.event.inputs.app_dir }}
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+  cdk_apply:
+    name: 'CDK'
+    needs: create_app_archives
+    uses: ./.github/workflows/cdk-apply.yml
+    with:
+      action: ${{ github.event.inputs.action }}
+      resource: ${{ github.event.inputs.resource }}
+      app_dir: ${{ github.event.inputs.app_dir }}
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+  cdk_destroy:
+    name: 'CDK Destroy'
+    needs: create_app_archives
+    uses: ./.github/workflows/cdk-destroy.yml
     with:
       action: ${{ github.event.inputs.action }}
       resource: ${{ github.event.inputs.resource }}

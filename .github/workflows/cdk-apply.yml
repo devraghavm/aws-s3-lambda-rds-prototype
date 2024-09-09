@@ -1,0 +1,68 @@
+name: 'CDK Synth/Deploy'
+
+on:
+  workflow_call:
+    inputs:
+      action:
+        type: string
+        description: 'CDK Action to Perform'
+        required: true
+      resource:
+        type: string
+        description: 'Resource'
+        required: true
+      app_dir:
+        type: string
+        description: 'App directory'
+        required: true
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        description: 'AWS Access Key ID'
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        description: 'AWS Secret Access Key'
+        required: true
+      AWS_ACCOUNT_ID:
+        description: 'AWS Account ID'
+        required: true
+
+jobs:
+  cdk_apply:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.action == 'Cdk_synth' || inputs.action == 'Cdk_apply' }}
+    defaults:
+      run:
+        working-directory: ${{ inputs.resource }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - uses: actions/checkout@master
+      - uses: actions/download-artifact@master
+        with:
+          name: dist
+          path: ${{ inputs.resource }}/dist
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-2
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Bootstrap CDK
+        run: npx cdk bootstrap
+
+      - name: Synthesize CDK stack
+        if: ${{ inputs.action == 'Cdk_synth' }}
+        run: npx cdk synth
+
+      - name: Deploy CDK stack
+        if: ${{ inputs.action == 'Cdk_apply' }}
+        run: npx cdk deploy --require-approval never

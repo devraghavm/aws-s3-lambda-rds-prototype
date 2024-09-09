@@ -1,0 +1,11 @@
+fein,employer_name,employer_address,employer_city,employer_state,employer_zip,employer_phone,employer_email,total_paid_wages
+123456789,ABC Corp,123 Main St,Anytown,CA,90210,555-1234,contact@abccorp.com,100000.00
+987654321,XYZ Inc,456 Elm St,Somewhere,TX,75001,555-5678,info@xyzinc.com,200000.00
+111222333,Acme LLC,789 Oak St,Elsewhere,NY,10001,555-8765,support@acmellc.com,150000.00
+444555666,Widgets Co,101 Pine St,Smalltown,FL,33101,555-4321,sales@widgetsco.com,120000.00
+777888999,Gadgets Ltd,202 Maple St,Bigcity,IL,60601,555-6789,hr@gadgetsltd.com,180000.00
+222333444,Tech Solutions,303 Birch St,Techville,WA,98101,555-9876,contact@techsolutions.com,250000.00
+555666777,Innovate Inc,404 Cedar St,Innovate City,MA,02101,555-5432,info@innovateinc.com,300000.00
+888999000,Future Tech,505 Spruce St,Future Town,OR,97201,555-6543,support@futuretech.com,220000.00
+333444555,NextGen,606 Willow St,Next City,CO,80201,555-7654,hr@nextgen.com,270000.00
+666777888,Alpha Corp,707 Ash St,Alpha Town,GA,30301,555-8765,contact@alphacorp.com,320000.00
