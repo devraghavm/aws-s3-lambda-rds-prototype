@@ -26,6 +26,21 @@ const sns = new SNS({
   region: "us-west-2",
 });
 
+const extractCsvData = (csvData: Readable): Promise<CsvRow[]> => {
+  return new Promise((resolve, reject) => {
+    const rows: CsvRow[] = [];
+    csvData
+      .pipe(csv())
+      .on("data", (data: CsvRow) => rows.push(data))
+      .on("end", () => {
+        resolve(rows);
+      })
+      .on("error", (error) => {
+        reject(error);
+      });
+  });
+};
+
 export const handler = async (
   event: SNSEvent,
   context: Context,
@@ -54,24 +69,15 @@ export const handler = async (
       const csvData = s3Object.Body as Readable;
       console.log("Parsing CSV data:", csvData);
 
-      const rows: CsvRow[] = [];
-      csvData
-        .pipe(csv())
-        .on("data", (data: CsvRow) => rows.push(data))
-        .on("end", async () => {
-          console.log("CSV data parsed:", rows);
-          rows.forEach(async (row) => {
-            console.log("Inserting row", row);
-            const service = new Service(); // Use lowercase 'service'
-            const result = await service.create(row);
-            console.log("Inserted row", result);
-            callback(null, "Data inserted successfully");
-          });
-        });
+      const rows = await extractCsvData(csvData);
+      const service = new Service();
+      const result = await service.insertMany(rows);
+      console.log("Inserted rows", result);
+      callback(null, "Data inserted successfully");
     } else {
       // Process non-SNS event
       const service = new Service(); // Use lowercase 'service'
-      const result: IResult<CsvRow> = await service.readAll();
+      const result: IResult<CsvRow[]> = await service.readAll();
       const rows: CsvRow[] = result.recordset;
       callback(null, JSON.stringify(rows));
     }

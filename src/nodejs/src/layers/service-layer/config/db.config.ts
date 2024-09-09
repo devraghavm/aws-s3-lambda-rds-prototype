@@ -20,26 +20,27 @@ async function retrieveSecret(secretArn: string): Promise<string> {
   return secretString;
 }
 
-export function createConnectionPool(): Promise<sql.ConnectionPool> {
-  const secretStr = retrieveSecret(process.env.DB_SECRET_ARN || "");
-  let secretString = "";
-  secretStr.then((secret) => {
-    console.log("Secret retrieved successfully", secret);
-    secretString = secret;
-  });
-  const { password, username } = JSON.parse(secretString);
-  const config = {
-    user: username || "",
-    password: password,
-    port: 1433,
-    server: process.env.DB_ENDPOINT_ADDRESS || "",
-    database: process.env.DB_NAME || "",
-    parseJSON: true,
-    options: {
-      enableArithAbort: true,
-      encrypt: true,
-      trustServerCertificate: true,
-    },
-  };
-  return sql.connect(config);
+export async function createConnectionPool(): Promise<sql.ConnectionPool> {
+  try {
+    const secretString = await retrieveSecret(process.env.DB_SECRET_ARN || "");
+    const { password, username } = JSON.parse(secretString);
+    const config = {
+      user: username || "",
+      password: password,
+      port: 1433,
+      server: process.env.DB_ENDPOINT_ADDRESS || "",
+      database: process.env.DB_NAME || "",
+      parseJSON: true,
+      options: {
+        enableArithAbort: true,
+        encrypt: true,
+        trustServerCertificate: true,
+      },
+    };
+    console.log("DB Config", config);
+    return sql.connect(config);
+  } catch (error) {
+    console.error("Error creating connection pool:", error);
+    throw error;
+  }
 }

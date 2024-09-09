@@ -1,6 +1,6 @@
 export interface CsvRow {
   // Define the structure of your CSV rows here
-  fein: string;
+  fein: number;
   employer_name: string;
   employer_address: string;
   employer_city: string;
@@ -8,6 +8,6 @@ export interface CsvRow {
   employer_zip: string;
   employer_phone: string;
   employer_email: string;
-  total_paid_wages: string;
+  total_paid_wages: number;
   // Add more columns as needed
 }
