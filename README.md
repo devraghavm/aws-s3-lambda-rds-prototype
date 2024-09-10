@@ -8,12 +8,16 @@
 ```sh
 cd aws-s3-lambda-rds-prototype/iac/cdk/nodejs
 ```
-3. Make sure your AWS credentials are set/ Run the below command to validate if the CDK code is valid:
+3. Make sure your AWS credentials are set/ Run the below commands to initialize the stack. (This is a one-time job and we don't need to run all the time to deploy the infrastructure.)
+```sh
+cdk bootstrap
+```
+4. Run the below command to validate if the CDK code is valid.
 ```sh
 cdk synth
 ```
 This should produce the Cloud Formation code that is going to run as part the deploy.
-4. Run the below command to deploy the cdk stack.
+5. Run the below command to deploy the cdk stack.
 ```sh
 cdk deploy
 ```
