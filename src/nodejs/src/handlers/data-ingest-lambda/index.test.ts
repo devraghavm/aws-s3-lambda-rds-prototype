@@ -85,6 +85,10 @@ describe("data-ingest-lambda handler", () => {
         total_paid_wages: 123456.78,
       },
     ];
+    const payload = {
+      size: mockRows.length,
+      rows: mockRows,
+    };
     mockServiceReadAll.mockResolvedValue({ recordset: mockRows });
 
     const event = {} as any;
@@ -94,7 +98,7 @@ describe("data-ingest-lambda handler", () => {
     await handler(event, context, callback);
 
     expect(mockServiceReadAll).toHaveBeenCalled();
-    expect(callback).toHaveBeenCalledWith(null, JSON.stringify(mockRows));
+    expect(callback).toHaveBeenCalledWith(null, JSON.stringify(payload));
   });
 
   it("should handle errors and call the callback with the error", async () => {

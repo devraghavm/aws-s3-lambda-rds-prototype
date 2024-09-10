@@ -79,7 +79,11 @@ export const handler = async (
       const service = new Service(); // Use lowercase 'service'
       const result: IResult<CsvRow[]> = await service.readAll();
       const rows: CsvRow[] = result.recordset;
-      callback(null, JSON.stringify(rows));
+      const payload = {
+        size: rows.length,
+        rows,
+      };
+      callback(null, JSON.stringify(payload));
     }
   } catch (error) {
     console.error("Error processing event", error);
