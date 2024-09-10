@@ -1,19 +1,19 @@
-import { Service } from "./service";
-import { createConnectionPool } from "./config/db.config";
-import { CsvRow } from "./interfaces/csv.row";
+import { IrsEmployerService } from "../irs.employer.service";
+import { createConnectionPool } from "../../config/db.config";
+import { IrsCsvRow } from "../../interface/irs.csv.row";
 import * as sql from "mssql";
 
 jest.mock("./config/db.config");
 jest.mock("mssql");
 
-describe("Service", () => {
-  let service: Service;
+describe("IrsEmployerService", () => {
+  let service: IrsEmployerService;
   let mockPool: any;
   let mockTransaction: any;
   let mockRequest: any;
 
   beforeEach(() => {
-    service = new Service();
+    service = new IrsEmployerService();
     mockPool = {
       transaction: jest.fn().mockReturnThis(),
       request: jest.fn().mockReturnThis(),
@@ -44,7 +44,7 @@ describe("Service", () => {
 
   describe("insert", () => {
     it("should insert a row into the database", async () => {
-      const row: CsvRow = {
+      const row: IrsCsvRow = {
         fein: 123456789,
         employer_name: "Test Employer",
         employer_address: "123 Test St",
@@ -68,7 +68,7 @@ describe("Service", () => {
     });
 
     it("should rollback transaction if an error occurs", async () => {
-      const row: CsvRow = {
+      const row: IrsCsvRow = {
         fein: 123456789,
         employer_name: "Test Employer",
         employer_address: "123 Test St",
@@ -90,7 +90,7 @@ describe("Service", () => {
 
   describe("insertMany", () => {
     it("should insert multiple rows into the database", async () => {
-      const rows: CsvRow[] = [
+      const rows: IrsCsvRow[] = [
         {
           fein: 123456789,
           employer_name: "Test Employer 1",
@@ -126,7 +126,7 @@ describe("Service", () => {
     });
 
     it("should rollback transaction if an error occurs", async () => {
-      const rows: CsvRow[] = [
+      const rows: IrsCsvRow[] = [
         {
           fein: 123456789,
           employer_name: "Test Employer 1",

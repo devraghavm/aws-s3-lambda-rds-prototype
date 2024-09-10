@@ -137,6 +137,7 @@ export class NodejsStack extends cdk.Stack {
           'aws-lambda', // Use the 'aws-lambda' available in the Layer
           'csv-parser', // Use the 'csv-parser' available in the Layer
           'mssql', // Use the 'mssql' available in the Layer
+          'winston', // Use the 'winston' available in the Layer
         ],
       },
       runtime: Runtime.NODEJS_20_X,

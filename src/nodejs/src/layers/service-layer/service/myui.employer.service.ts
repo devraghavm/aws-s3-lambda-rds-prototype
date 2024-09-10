@@ -1,17 +1,19 @@
 import { IResult } from "mssql";
-import { createConnectionPool } from "./config/db.config";
-import { CsvRow } from "./interfaces/csv.row";
+import { createConnectionPool } from "../config/db.config";
+import { MyuiCsvRow } from "../interface/myui.csv.row";
 import * as sql from "mssql";
+import { IService } from "../contract/iservice";
+import logger from "../config/logger.config";
 
-export class Service {
+export class MyuiEmployerService implements IService<MyuiCsvRow> {
   constructor() {}
 
   // Create operation
-  async insert(row: CsvRow): Promise<any> {
+  async insert(row: MyuiCsvRow): Promise<any> {
     const pool = await createConnectionPool();
     let transaction = pool.transaction();
     try {
-      console.log("Inserting row", row);
+      logger.info(`Inserting row ${row}`);
       await transaction.begin();
       const request = pool.request();
       request.input("fein", sql.Int, row.fein);
@@ -28,7 +30,7 @@ export class Service {
         row.total_paid_wages,
       );
       const query = `
-        INSERT INTO EmployerData (
+        INSERT INTO MyuiEmployerData (
           fein, employer_name, employer_address, employer_city, employer_state, employer_zip, employer_phone, employer_email, total_paid_wages
         ) 
         VALUES (
@@ -36,10 +38,10 @@ export class Service {
         )`;
       let result = await request.query(query);
       await transaction.commit();
-      console.log("Inserted row", result);
+      logger.info(`Inserted row ${result}`);
       return result;
     } catch (error) {
-      console.error("Error inserting data", error);
+      logger.error(`Error inserting data ${error}`);
       await transaction.rollback();
       throw error;
     } finally {
@@ -48,14 +50,14 @@ export class Service {
   }
 
   // Create Many operation
-  async insertMany(rows: CsvRow[]): Promise<any> {
+  async insertMany(rows: MyuiCsvRow[]): Promise<any> {
     const pool = await createConnectionPool();
     let transaction = pool.transaction();
     try {
-      console.log("Inserting rows", rows);
+      logger.info(`Inserting rows ${rows}`);
       await transaction.begin();
       const request = pool.request();
-      const table = new sql.Table("EmployerData");
+      const table = new sql.Table("MyuiEmployerData");
       table.columns.add("fein", sql.Int, {
         nullable: false,
         primary: true,
@@ -85,10 +87,10 @@ export class Service {
       }
       let result = await request.bulk(table);
       await transaction.commit();
-      console.log("Inserted rows", result);
+      logger.info(`Inserted rows ${result}`);
       return result;
     } catch (error) {
-      console.error("Error inserting data", error);
+      logger.error("Error inserting data", error);
       await transaction.rollback();
       throw error;
     } finally {
@@ -97,12 +99,12 @@ export class Service {
   }
 
   // Read operation
-  async readAll(): Promise<IResult<CsvRow[]>> {
+  async readAll(): Promise<IResult<MyuiCsvRow[]>> {
     const pool = await createConnectionPool();
     try {
-      console.log("Reading data");
+      logger.info("Reading data");
       const request = pool.request();
-      let result: IResult<CsvRow[]> = await request.query(`
+      let result: IResult<MyuiCsvRow[]> = await request.query(`
         SELECT 
           fein,
           employer_name,
@@ -113,30 +115,37 @@ export class Service {
           employer_phone,
           employer_email,
           total_paid_wages
-        FROM EmployerData
+        FROM MyuiEmployerData
       `);
-      console.log("Read data", result?.recordset);
+      logger.info(`Read data ${result?.recordset}`);
       return result;
     } catch (error) {
-      console.error("Error reading data", error);
+      logger.error("Error reading data", error);
       throw error;
     } finally {
       await pool.close();
     }
   }
 
+  // Read by ID operation
+  async readById(id: number): Promise<any> {
+    // Implement your read by ID logic here
+    // Use this.connection to interact with the database
+    // Return the data
+  }
+
   // Update operation
-  async update(id: string, data: any): Promise<any> {
+  async update(id: number, row: MyuiCsvRow): Promise<any> {
     // Implement your update logic here
     // Use this.connection to interact with the database
     // Return the updated data
   }
 
   // Delete operation
-  async delete(id: string): Promise<void> {
+  async delete(id: number): Promise<void> {
     // Implement your delete logic here
     // Use this.connection to interact with the database
   }
 }
 
-export default Service;
+export default MyuiEmployerService;

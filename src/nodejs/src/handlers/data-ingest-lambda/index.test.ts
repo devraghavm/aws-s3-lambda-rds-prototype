@@ -2,17 +2,22 @@ import { handler } from "./index";
 import { S3 } from "@aws-sdk/client-s3";
 import { Context, Callback, SNSEvent } from "aws-lambda";
 import { Readable } from "stream";
-import { Service } from "../../layers/service-layer/service";
-import { CsvRow } from "../../layers/service-layer/interfaces/csv.row";
+import { IrsEmployerService } from "../../layers/service-layer/service/irs.employer.service";
+import { MyuiEmployerService } from "../../layers/service-layer/service/myui.employer.service";
+import { IrsCsvRow } from "../../layers/service-layer/interface/irs.csv.row";
+import { MyuiCsvRow } from "../../layers/service-layer/interface/myui.csv.row";
 
 jest.mock("@aws-sdk/client-s3");
 jest.mock("@aws-sdk/client-sns");
-jest.mock("../../layers/service-layer/service");
+jest.mock("../../layers/service-layer/service/irs.employer.service");
+jest.mock("../../layers/service-layer/service/myui.employer.service");
 
 describe("data-ingest-lambda handler", () => {
   let mockS3GetObject: jest.Mock;
-  let mockServiceInsertMany: jest.Mock;
-  let mockServiceReadAll: jest.Mock;
+  let mockIrsServiceInsertMany: jest.Mock;
+  let mockMyuiServiceInsertMany: jest.Mock;
+  let mockIrsServiceReadAll: jest.Mock;
+  let mockMyuiServiceReadAll: jest.Mock;
 
   beforeEach(() => {
     mockS3GetObject = jest.fn();
@@ -20,11 +25,17 @@ describe("data-ingest-lambda handler", () => {
       getObject: mockS3GetObject,
     }));
 
-    mockServiceInsertMany = jest.fn();
-    mockServiceReadAll = jest.fn();
-    (Service as jest.Mock).mockImplementation(() => ({
-      insertMany: mockServiceInsertMany,
-      readAll: mockServiceReadAll,
+    mockIrsServiceInsertMany = jest.fn();
+    mockMyuiServiceInsertMany = jest.fn();
+    mockIrsServiceReadAll = jest.fn();
+    mockMyuiServiceReadAll = jest.fn();
+    (IrsEmployerService as jest.Mock).mockImplementation(() => ({
+      insertMany: mockIrsServiceInsertMany,
+      readAll: mockIrsServiceReadAll,
+    }));
+    (MyuiEmployerService as jest.Mock).mockImplementation(() => ({
+      insertMany: mockMyuiServiceInsertMany,
+      readAll: mockMyuiServiceReadAll,
     }));
   });
 
@@ -32,10 +43,10 @@ describe("data-ingest-lambda handler", () => {
     jest.clearAllMocks();
   });
 
-  it("should process SNS event and insert CSV data into the database", async () => {
+  it("should process SNS event and insert CSV data into the IRS database", async () => {
     const mockCsvData = Readable.from(["header1,header2\nvalue1,value2"]);
     mockS3GetObject.mockResolvedValue({ Body: mockCsvData });
-    mockServiceInsertMany.mockResolvedValue({});
+    mockIrsServiceInsertMany.mockResolvedValue({});
 
     const event: SNSEvent = {
       Records: [
@@ -46,7 +57,7 @@ describe("data-ingest-lambda handler", () => {
                 {
                   s3: {
                     bucket: { name: "test-bucket" },
-                    object: { key: "test-key" },
+                    object: { key: "irs-test-key" },
                   },
                 },
               ],
@@ -63,16 +74,55 @@ describe("data-ingest-lambda handler", () => {
 
     expect(mockS3GetObject).toHaveBeenCalledWith({
       Bucket: "test-bucket",
-      Key: "test-key",
+      Key: "irs-test-key",
     });
-    expect(mockServiceInsertMany).toHaveBeenCalledWith([
+    expect(mockIrsServiceInsertMany).toHaveBeenCalledWith([
       { header1: "value1", header2: "value2" },
     ]);
     expect(callback).toHaveBeenCalledWith(null, "Data inserted successfully");
   });
 
-  it("should process non-SNS event and return all rows from the database", async () => {
-    const mockRows: CsvRow[] = [
+  it("should process SNS event and insert CSV data into the MyUI database", async () => {
+    const mockCsvData = Readable.from(["header1,header2\nvalue1,value2"]);
+    mockS3GetObject.mockResolvedValue({ Body: mockCsvData });
+    mockMyuiServiceInsertMany.mockResolvedValue({});
+
+    const event: SNSEvent = {
+      Records: [
+        {
+          Sns: {
+            Message: JSON.stringify({
+              Records: [
+                {
+                  s3: {
+                    bucket: { name: "test-bucket" },
+                    object: { key: "myui-test-key" },
+                  },
+                },
+              ],
+            }),
+          },
+        },
+      ],
+    } as any;
+
+    const context: Context = {} as any;
+    const callback: Callback = jest.fn();
+
+    await handler(event, context, callback);
+
+    expect(mockS3GetObject).toHaveBeenCalledWith({
+      Bucket: "test-bucket",
+      Key: "myui-test-key",
+    });
+    expect(mockMyuiServiceInsertMany).toHaveBeenCalledWith([
+      { header1: "value1", header2: "value2" },
+    ]);
+    expect(callback).toHaveBeenCalledWith(null, "Data inserted successfully");
+  });
+
+  it("should process non-SNS event and return all rows from the IRS database", async () => {
+    const mockRows: IrsCsvRow[] = [
       {
         fein: 123456789,
         employer_name: "Test Employer",
@@ -89,15 +139,45 @@ describe("data-ingest-lambda handler", () => {
       size: mockRows.length,
       rows: mockRows,
     };
-    mockServiceReadAll.mockResolvedValue({ recordset: mockRows });
+    mockIrsServiceReadAll.mockResolvedValue({ recordset: mockRows });
 
-    const event = {} as any;
+    const event = { type: "irs" } as any;
     const context: Context = {} as any;
     const callback: Callback = jest.fn();
 
     await handler(event, context, callback);
 
-    expect(mockServiceReadAll).toHaveBeenCalled();
+    expect(mockIrsServiceReadAll).toHaveBeenCalled();
+    expect(callback).toHaveBeenCalledWith(null, JSON.stringify(payload));
+  });
+
+  it("should process non-SNS event and return all rows from the MyUI database", async () => {
+    const mockRows: MyuiCsvRow[] = [
+      {
+        fein: 123456789,
+        employer_name: "Test Employer",
+        employer_address: "123 Test St",
+        employer_city: "Test City",
+        employer_state: "TS",
+        employer_zip: "12345",
+        employer_phone: "123-456-7890",
+        employer_email: "abc@gmail.com",
+        total_paid_wages: 123456.78,
+      },
+    ];
+    const payload = {
+      size: mockRows.length,
+      rows: mockRows,
+    };
+    mockMyuiServiceReadAll.mockResolvedValue({ recordset: mockRows });
+
+    const event = { type: "myui" } as any;
+    const context: Context = {} as any;
+    const callback: Callback = jest.fn();
+
+    await handler(event, context, callback);
+
+    expect(mockMyuiServiceReadAll).toHaveBeenCalled();
     expect(callback).toHaveBeenCalledWith(null, JSON.stringify(payload));
   });
 
@@ -129,6 +209,159 @@ describe("data-ingest-lambda handler", () => {
 
     await handler(event, context, callback);
 
-    expect(callback).toHaveBeenCalledWith(error);
+    expect(callback).toHaveBeenCalledWith(
+      new Error(`Error processing event: ${error.message}`),
+    );
+  });
+
+  it("should throw an error for invalid object key in SNS event", async () => {
+    const mockCsvData = Readable.from(["header1,header2\nvalue1,value2"]);
+    mockS3GetObject.mockResolvedValue({ Body: mockCsvData });
+
+    const event: SNSEvent = {
+      Records: [
+        {
+          Sns: {
+            Message: JSON.stringify({
+              Records: [
+                {
+                  s3: {
+                    bucket: { name: "test-bucket" },
+                    object: { key: "invalid-key" },
+                  },
+                },
+              ],
+            }),
+          },
+        },
+      ],
+    } as any;
+
+    const context: Context = {} as any;
+    const callback: Callback = jest.fn();
+
+    await handler(event, context, callback);
+
+    expect(callback).toHaveBeenCalledWith(
+      new Error("Invalid object key: invalid-key"),
+    );
+  });
+
+  it("should throw an error for invalid event type in non-SNS event", async () => {
+    const event = { type: "invalid" } as any;
+    const context: Context = {} as any;
+    const callback: Callback = jest.fn();
+
+    await handler(event, context, callback);
+
+    expect(callback).toHaveBeenCalledWith(
+      new Error("Invalid event type: invalid"),
+    );
+  });
+
+  it("should handle empty SNS event gracefully", async () => {
+    const event: SNSEvent = {
+      Records: [],
+    } as any;
+
+    const context: Context = {} as any;
+    const callback: Callback = jest.fn();
+
+    await handler(event, context, callback);
+
+    expect(callback).toHaveBeenCalledWith(
+      new Error(
+        "Error processing event: Cannot read property 'Sns' of undefined",
+      ),
+    );
+  });
+
+  it("should handle empty S3 event gracefully", async () => {
+    const event: SNSEvent = {
+      Records: [
+        {
+          Sns: {
+            Message: JSON.stringify({
+              Records: [],
+            }),
+          },
+        },
+      ],
+    } as any;
+
+    const context: Context = {} as any;
+    const callback: Callback = jest.fn();
+
+    await handler(event, context, callback);
+
+    expect(callback).toHaveBeenCalledWith(
+      new Error(
+        "Error processing event: Cannot read property 's3' of undefined",
+      ),
+    );
+  });
+
+  it("should handle missing S3 bucket name gracefully", async () => {
+    const event: SNSEvent = {
+      Records: [
+        {
+          Sns: {
+            Message: JSON.stringify({
+              Records: [
+                {
+                  s3: {
+                    bucket: {},
+                    object: { key: "test-key" },
+                  },
+                },
+              ],
+            }),
+          },
+        },
+      ],
+    } as any;
+
+    const context: Context = {} as any;
+    const callback: Callback = jest.fn();
+
+    await handler(event, context, callback);
+
+    expect(callback).toHaveBeenCalledWith(
+      new Error(
+        "Error processing event: Cannot read property 'name' of undefined",
+      ),
+    );
+  });
+
+  it("should handle missing S3 object key gracefully", async () => {
+    const event: SNSEvent = {
+      Records: [
+        {
+          Sns: {
+            Message: JSON.stringify({
+              Records: [
+                {
+                  s3: {
+                    bucket: { name: "test-bucket" },
+                    object: {},
+                  },
+                },
+              ],
+            }),
+          },
+        },
+      ],
+    } as any;
+
+    const context: Context = {} as any;
+    const callback: Callback = jest.fn();
+
+    await handler(event, context, callback);
+
+    expect(callback).toHaveBeenCalledWith(
+      new Error(
+        "Error processing event: Cannot read property 'key' of undefined",
+      ),
+    );
   });
 });

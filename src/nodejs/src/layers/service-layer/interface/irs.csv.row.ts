@@ -1,4 +1,4 @@
-export interface CsvRow {
+export interface IrsCsvRow {
   // Define the structure of your CSV rows here
   fein: number;
   employer_name: string;
