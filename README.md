@@ -25,9 +25,9 @@ cdk deploy
 Once the deploy is successful, you can navigate to AWS Console, go to Cloud Formation service and investigate the stack, its resources for the AWS Resources created.
 
 ### Testing the functionality
-1. Once the cdk stack is deployed, you should see an S3 Bucket with name `devraghavm-data-ingest-bucket`. Navigate to that bucket and create subfolder with name `irs`.
-2. Upload the `employer_data.csv` file under path `src/nodejs` folder in the repository to the `irs` folder in the S3 Bucket.
-3. You should see the following happen:
+- Once the cdk stack is deployed, you should see an S3 Bucket with name `devraghavm-data-ingest-bucket`. Navigate to that bucket and create subfolder with name `irs`.
+- Upload the `employer_data.csv` file under path `src/nodejs` folder in the repository to the `irs` folder in the S3 Bucket.
+- You should see the following happen:
   1. An event notification triggered
   2. An SNS message produced with the S3 information in it
   3. Lambda function triggered as an SNS target.
