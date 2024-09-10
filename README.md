@@ -16,7 +16,8 @@ cdk bootstrap
 ```sh
 cdk synth
 ```
-This should produce the Cloud Formation code that is going to run as part the deploy.
+  This should produce the Cloud Formation code that is going to run as part the deploy.
+
 5. Run the below command to deploy the cdk stack.
 ```sh
 cdk deploy
