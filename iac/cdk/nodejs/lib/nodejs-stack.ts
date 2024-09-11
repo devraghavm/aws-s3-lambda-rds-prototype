@@ -78,7 +78,7 @@ export class NodejsStack extends cdk.Stack {
       },
       fnLogRetention: RetentionDays.FIVE_MONTHS,
       fnCode: DockerImageCode.fromImageAsset(
-        path.join(__dirname, '..', 'rds-init-fn-code'),
+        path.join(__dirname, 'rds-init-fn-code'),
         {}
       ),
       fnTimeout: Duration.minutes(2),
@@ -146,19 +146,19 @@ export class NodejsStack extends cdk.Stack {
     };
 
     const dependenciesLayer = new LayerVersion(this, 'DependenciesLayer', {
-      code: Code.fromAsset(path.join(__dirname, '../dist/layers/deps-layer')),
+      code: Code.fromAsset(path.join(__dirname, './dist/layers/deps-layer')),
     });
 
     const servicesLayer = new LayerVersion(this, 'ServicesLayer', {
       code: Code.fromAsset(
-        path.join(__dirname, '../dist/src/layers/service-layer')
+        path.join(__dirname, './dist/src/layers/service-layer')
       ),
     });
 
     const rdsLambdaFn = new NodejsFunction(this, 'rdsLambdaFn', {
       entry: path.join(
         __dirname,
-        '../dist/src/handlers/data-ingest-lambda',
+        './dist/src/handlers/data-ingest-lambda',
         'index.js'
       ),
       ...nodeJsFunctionProps,
