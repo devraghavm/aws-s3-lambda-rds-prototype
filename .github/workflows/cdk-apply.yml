@@ -47,7 +47,7 @@ jobs:
           node-version: '20.x'
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -56,13 +56,32 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Bootstrap CDK
-        run: npx cdk bootstrap
+      - name: Print working directory
+        run: |
+          pwd
+          ls -al
 
       - name: Synthesize CDK stack
+        uses: youyo/aws-cdk-github-actions@v2
         if: ${{ inputs.action == 'Cdk_synth' }}
-        run: npx cdk synth
+        with:
+          cdk_subcommand: 'synth'
+          working_dir: ${{ inputs.resource }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: 'us-west-2'
 
       - name: Deploy CDK stack
+        uses: youyo/aws-cdk-github-actions@v2
         if: ${{ inputs.action == 'Cdk_apply' }}
-        run: npx cdk deploy --require-approval never
+        with:
+          cdk_subcommand: 'deploy'
+          cdk_stack: 'NodejsStack'
+          cdk_args: '--require-approval never'
+          actions_comment: false
+          working_dir: ${{ inputs.resource }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: 'us-west-2'

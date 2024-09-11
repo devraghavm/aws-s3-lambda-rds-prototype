@@ -40,7 +40,7 @@ jobs:
       - uses: actions/download-artifact@master
         with:
           name: dist
-          path: ${{ github.workspace }}/${{ inputs.app_dir }}/dist
+          path: ${{ inputs.resource }}/dist
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -56,5 +56,21 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Print working directory
+        run: |
+          pwd
+          ls -al
+
       - name: Destroy CDK stack
-        run: npx cdk destroy --force
+        uses: youyo/aws-cdk-github-actions@v2
+        if: ${{ inputs.action == 'Cdk_destroy' }}
+        with:
+          cdk_subcommand: 'destroy'
+          cdk_stack: 'NodejsStack'
+          cdk_args: '--require-approval never'
+          actions_comment: false
+          working_dir: ${{ inputs.resource }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: 'us-west-2'
