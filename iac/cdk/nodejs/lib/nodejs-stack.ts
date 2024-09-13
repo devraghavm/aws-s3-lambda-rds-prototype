@@ -140,7 +140,7 @@ export class NodejsStack extends cdk.Stack {
           'winston', // Use the 'winston' available in the Layer
         ],
       },
-      runtime: Runtime.NODEJS_20_X,
+      runtime: Runtime.NODEJS_18_X,
       timeout: Duration.minutes(3), // Default is 3 seconds
       memorySize: 256,
     };

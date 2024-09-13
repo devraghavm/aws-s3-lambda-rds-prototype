@@ -43,21 +43,17 @@ BEGIN
   );
 END;
 
--- Check if the tables were created and do a truncate
-IF EXISTS (SELECT *
-FROM sys.tables
-WHERE name = 'IrsEmployerData')
+-- create a sequence for the primary key
+IF NOT EXISTS (SELECT *
+FROM sys.sequences
+WHERE name = 'Irs940JobSeq')
 BEGIN
-  -- Print an error message
-  TRUNCATE TABLE IrsEmployerData;
+  -- Create the sequence
+  CREATE SEQUENCE Irs940JobSeq
+  AS INT
+  START WITH 1
+  INCREMENT BY 1;
 END;
 
--- Check if the tables were created and do a truncate
-IF EXISTS (SELECT *
-FROM sys.tables
-WHERE name = 'MyuiEmployerData')
-BEGIN
-  -- Print an error message
-  TRUNCATE TABLE MyuiEmployerData;
-END;
+-- create a Irs940Job table containing job_id, job_start_time, job_end_time, job_status, job_message, and job_type
 -- End of script
