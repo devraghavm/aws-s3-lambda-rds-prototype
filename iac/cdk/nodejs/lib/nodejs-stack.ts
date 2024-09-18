@@ -21,6 +21,12 @@ import { SnsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 import { CdkResourceInitializer } from './resource-initializer';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { DATABASE_NAME } from './stack-constants';
+import { EventConstruct } from './event-rule';
+import {
+  addLambdaPermission,
+  LambdaFunction,
+} from 'aws-cdk-lib/aws-events-targets';
+import { RuleTargetInput } from 'aws-cdk-lib/aws-events';
 
 export class NodejsStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -130,6 +136,12 @@ export class NodejsStack extends cdk.Stack {
       }
     );
 
+    // Create a new SNS topic
+    const dataProcessingTopic = new sns.Topic(this, 'DataProcessingTopic', {
+      displayName: 'Data Processing Topic',
+      topicName: 'DataProcessingTopic',
+    });
+
     const nodeJsFunctionProps: NodejsFunctionProps = {
       bundling: {
         externalModules: [
@@ -170,6 +182,7 @@ export class NodejsStack extends cdk.Stack {
         DB_ENDPOINT_ADDRESS: dbInstance.dbInstanceEndpointAddress,
         DB_NAME: DATABASE_NAME,
         DB_SECRET_ARN: dbInstance.secret?.secretFullArn || '',
+        SNS_TOPIC_ARN: dataProcessingTopic.topicArn,
       },
       vpc,
       vpcSubnets: vpc.selectSubnets({
@@ -196,5 +209,53 @@ export class NodejsStack extends cdk.Stack {
     );
 
     rdsLambdaFn.addEventSource(new SnsEventSource(snsTopic));
+
+    // rdsLambdaFn will publish to the SNS topic
+    dataProcessingTopic.grantPublish(rdsLambdaFn);
+
+    const eventRule = new EventConstruct(this, 'EventConstruct');
+    eventRule.eventRule.addTarget(
+      new LambdaFunction(rdsLambdaFn, {
+        event: RuleTargetInput.fromObject({ type: 'generate-report-run-id' }),
+      })
+    );
+
+    addLambdaPermission(eventRule.eventRule, rdsLambdaFn);
+
+    // Create a new Lambda function
+    const dataProcessingLambdaFn = new NodejsFunction(
+      this,
+      'DataProcessingLambdaFn',
+      {
+        entry: path.join(
+          __dirname,
+          '..',
+          'dist/src/handlers/data-processing-lambda',
+          'index.js'
+        ),
+        ...nodeJsFunctionProps,
+        functionName: 'dataProcessingLambdaFn',
+        environment: {
+          DB_ENDPOINT_ADDRESS: dbInstance.dbInstanceEndpointAddress,
+          DB_NAME: DATABASE_NAME,
+          DB_SECRET_ARN: dbInstance.secret?.secretFullArn || '',
+          SNS_TOPIC_ARN: dataProcessingTopic.topicArn,
+        },
+        vpc,
+        vpcSubnets: vpc.selectSubnets({
+          subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+        }),
+        securityGroups: [lambdaSG],
+        layers: [dependenciesLayer, servicesLayer],
+      }
+    );
+
+    // Add SNS event subscription to the Lambda function
+    dataProcessingLambdaFn.addEventSource(
+      new SnsEventSource(dataProcessingTopic)
+    );
+
+    // Allow the dataProcessingLambdaFn to publish to the SNS topic
+    dataProcessingTopic.grantPublish(dataProcessingLambdaFn);
   }
 }

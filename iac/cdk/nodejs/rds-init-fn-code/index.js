@@ -30,16 +30,25 @@ exports.handler = async (e) => {
       .readFileSync(path.join(__dirname, 'database.sql'))
       .toString();
     const databaseResult = await query(pool, databaseScript);
+
     const sqlScript = fs
       .readFileSync(path.join(__dirname, 'script.sql'))
       .toString();
     const sqlResult = await query(pool, sqlScript);
 
+    const triggersScript = fs
+      .readFileSync(path.join(__dirname, 'triggers.sql'))
+      .toString();
+    const triggersResult = await query(pool, triggersScript);
+
     return {
       status: 'OK',
-      results: `Database and tables created successfully: ${databaseResult} ${sqlResult}`,
+      results: `Database and tables created successfully: ${databaseResult} ${JSON.stringify(
+        sqlResult
+      )} ${triggersResult}`,
     };
   } catch (err) {
+    console.error(err);
     return {
       status: 'ERROR',
       err,

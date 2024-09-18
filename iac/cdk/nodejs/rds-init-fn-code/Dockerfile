@@ -6,5 +6,6 @@ RUN npm install --only=production
 COPY index.js ./
 COPY database.sql ./
 COPY script.sql ./
+COPY triggers.sql ./
 
 CMD [ "index.handler" ]

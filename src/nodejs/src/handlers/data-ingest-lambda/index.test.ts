@@ -4,6 +4,7 @@ import { Context, Callback, SNSEvent } from "aws-lambda";
 import { Readable } from "stream";
 import { IrsEmployerService } from "../../layers/service-layer/service/irs.employer.service";
 import { MyuiEmployerService } from "../../layers/service-layer/service/myui.employer.service";
+import { ReportJobRunService } from "../../layers/service-layer/service/report.job.run.service";
 import { IrsCsvRow } from "../../layers/service-layer/interface/irs.csv.row";
 import { MyuiCsvRow } from "../../layers/service-layer/interface/myui.csv.row";
 
@@ -11,6 +12,7 @@ jest.mock("@aws-sdk/client-s3");
 jest.mock("@aws-sdk/client-sns");
 jest.mock("../../layers/service-layer/service/irs.employer.service");
 jest.mock("../../layers/service-layer/service/myui.employer.service");
+jest.mock("../../layers/service-layer/service/report.job.run.service");
 
 describe("data-ingest-lambda handler", () => {
   let mockS3GetObject: jest.Mock;
@@ -18,6 +20,7 @@ describe("data-ingest-lambda handler", () => {
   let mockMyuiServiceInsertMany: jest.Mock;
   let mockIrsServiceReadAll: jest.Mock;
   let mockMyuiServiceReadAll: jest.Mock;
+  let mockReportJobRunServiceInsert: jest.Mock;
 
   beforeEach(() => {
     mockS3GetObject = jest.fn();
@@ -29,6 +32,8 @@ describe("data-ingest-lambda handler", () => {
     mockMyuiServiceInsertMany = jest.fn();
     mockIrsServiceReadAll = jest.fn();
     mockMyuiServiceReadAll = jest.fn();
+    mockReportJobRunServiceInsert = jest.fn();
+
     (IrsEmployerService as jest.Mock).mockImplementation(() => ({
       insertMany: mockIrsServiceInsertMany,
       readAll: mockIrsServiceReadAll,
@@ -36,6 +41,9 @@ describe("data-ingest-lambda handler", () => {
     (MyuiEmployerService as jest.Mock).mockImplementation(() => ({
       insertMany: mockMyuiServiceInsertMany,
       readAll: mockMyuiServiceReadAll,
+    }));
+    (ReportJobRunService as jest.Mock).mockImplementation(() => ({
+      insert: mockReportJobRunServiceInsert,
     }));
   });
 
@@ -133,6 +141,7 @@ describe("data-ingest-lambda handler", () => {
         employer_phone: "123-456-7890",
         employer_email: "abc@gmail.com",
         total_paid_wages: 123456.78,
+        run_id: 1,
       },
     ];
     const payload = {
@@ -141,7 +150,7 @@ describe("data-ingest-lambda handler", () => {
     };
     mockIrsServiceReadAll.mockResolvedValue({ recordset: mockRows });
 
-    const event = { type: "irs" } as any;
+    const event = { type: "irs-read-all" } as any;
     const context: Context = {} as any;
     const callback: Callback = jest.fn();
 
@@ -163,6 +172,7 @@ describe("data-ingest-lambda handler", () => {
         employer_phone: "123-456-7890",
         employer_email: "abc@gmail.com",
         total_paid_wages: 123456.78,
+        run_id: 1,
       },
     ];
     const payload = {
@@ -171,7 +181,7 @@ describe("data-ingest-lambda handler", () => {
     };
     mockMyuiServiceReadAll.mockResolvedValue({ recordset: mockRows });
 
-    const event = { type: "myui" } as any;
+    const event = { type: "myui-read-all" } as any;
     const context: Context = {} as any;
     const callback: Callback = jest.fn();
 
@@ -179,6 +189,26 @@ describe("data-ingest-lambda handler", () => {
 
     expect(mockMyuiServiceReadAll).toHaveBeenCalled();
     expect(callback).toHaveBeenCalledWith(null, JSON.stringify(payload));
+  });
+
+  it("should generate a report run ID", async () => {
+    const mockReportJobRun = {
+      run_name: "Test Run",
+      run_description: "Test Run Description",
+      job_id: 1,
+    };
+    mockReportJobRunServiceInsert.mockResolvedValue(mockReportJobRun);
+
+    const event = { type: "generate-report-run-id" } as any;
+    const context: Context = {} as any;
+    const callback: Callback = jest.fn();
+
+    await handler(event, context, callback);
+
+    expect(mockReportJobRunServiceInsert).toHaveBeenCalledWith(
+      mockReportJobRun,
+    );
+    expect(callback).toHaveBeenCalledWith(null, mockReportJobRun);
   });
 
   it("should handle errors and call the callback with the error", async () => {

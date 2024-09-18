@@ -7,6 +7,9 @@ import logger from "../config/logger.config";
 
 export class IrsEmployerService implements IService<IrsCsvRow> {
   constructor() {}
+  async genreateId(): Promise<number> {
+    throw new Error("Method not implemented.");
+  }
 
   // Create operation
   async insert(row: IrsCsvRow): Promise<any> {
@@ -29,12 +32,13 @@ export class IrsEmployerService implements IService<IrsCsvRow> {
         sql.Decimal(18, 2),
         row.total_paid_wages,
       );
+      request.input("run_id", sql.Int, row.run_id);
       const query = `
         INSERT INTO IrsEmployerData (
-          fein, employer_name, employer_address, employer_city, employer_state, employer_zip, employer_phone, employer_email, total_paid_wages
+          fein, employer_name, employer_address, employer_city, employer_state, employer_zip, employer_phone, employer_email, total_paid_wages, run_id
         ) 
         VALUES (
-          @fein, @employer_name, @employer_address, @employer_city, @employer_state, @employer_zip, @employer_phone, @employer_email, @total_paid_wages
+          @fein, @employer_name, @employer_address, @employer_city, @employer_state, @employer_zip, @employer_phone, @employer_email, @total_paid_wages, @run_id
         )`;
       let result = await request.query(query);
       await transaction.commit();
@@ -54,7 +58,7 @@ export class IrsEmployerService implements IService<IrsCsvRow> {
     const pool = await createConnectionPool();
     let transaction = pool.transaction();
     try {
-      logger.info(`Inserting rows ${rows}`);
+      logger.info(`Inserting rows ${JSON.stringify(rows)}`);
       await transaction.begin();
       const request = pool.request();
       const table = new sql.Table("IrsEmployerData");
@@ -72,6 +76,7 @@ export class IrsEmployerService implements IService<IrsCsvRow> {
       table.columns.add("total_paid_wages", sql.Decimal(18, 2), {
         nullable: false,
       });
+      table.columns.add("run_id", sql.Int, { nullable: false });
       for (const row of rows) {
         table.rows.add(
           row.fein,
@@ -83,11 +88,12 @@ export class IrsEmployerService implements IService<IrsCsvRow> {
           row.employer_phone,
           row.employer_email,
           row.total_paid_wages,
+          row.run_id,
         );
       }
       let result = await request.bulk(table);
       await transaction.commit();
-      logger.info(`Inserted rows ${result}`);
+      logger.info(`Inserted rows ${JSON.stringify(result)}`);
       return result;
     } catch (error) {
       logger.error("Error inserting data", error);
@@ -114,7 +120,8 @@ export class IrsEmployerService implements IService<IrsCsvRow> {
           employer_zip,
           employer_phone,
           employer_email,
-          total_paid_wages
+          total_paid_wages,
+          run_id
         FROM IrsEmployerData
       `);
       logger.info(`Read data ${result?.recordset}`);
@@ -129,22 +136,49 @@ export class IrsEmployerService implements IService<IrsCsvRow> {
 
   // Read by ID operation
   async readById(id: number): Promise<any> {
-    // Implement your read by ID logic here
-    // Use this.connection to interact with the database
-    // Return the data
+    throw new Error("Method not implemented.");
+  }
+
+  // Read by Run ID operation
+  async readByRunId(run_id: number): Promise<IResult<IrsCsvRow[]>> {
+    const pool = await createConnectionPool();
+    try {
+      logger.info("Reading data");
+      const request = pool.request();
+      request.input("run_id", sql.Int, run_id);
+      let result: IResult<IrsCsvRow[]> = await request.query(`
+        SELECT 
+          fein,
+          employer_name,
+          employer_address,
+          employer_city,
+          employer_state,
+          employer_zip,
+          employer_phone,
+          employer_email,
+          total_paid_wages,
+          run_id
+        FROM IrsEmployerData
+        WHERE run_id = @run_id
+      `);
+      logger.info(`Read data ${result?.recordset}`);
+      return result;
+    } catch (error) {
+      logger.error("Error reading data", error);
+      throw error;
+    } finally {
+      await pool.close();
+    }
   }
 
   // Update operation
   async update(id: number, row: IrsCsvRow): Promise<any> {
-    // Implement your update logic here
-    // Use this.connection to interact with the database
-    // Return the updated data
+    throw new Error("Method not implemented.");
   }
 
   // Delete operation
   async delete(id: number): Promise<void> {
-    // Implement your delete logic here
-    // Use this.connection to interact with the database
+    throw new Error("Method not implemented.");
   }
 }
 

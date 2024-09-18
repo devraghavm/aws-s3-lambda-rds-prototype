@@ -54,6 +54,7 @@ describe("MyuiEmployerService", () => {
         employer_phone: "123-456-7890",
         employer_email: "test@example.com",
         total_paid_wages: 1000.0,
+        run_id: 1,
       };
 
       mockRequest.query.mockResolvedValue({ recordset: [] });
@@ -78,6 +79,7 @@ describe("MyuiEmployerService", () => {
         employer_phone: "123-456-7890",
         employer_email: "test@example.com",
         total_paid_wages: 1000.0,
+        run_id: 1,
       };
 
       mockRequest.query.mockRejectedValue(new Error("Test Error"));
@@ -101,6 +103,7 @@ describe("MyuiEmployerService", () => {
           employer_phone: "123-456-7890",
           employer_email: "test1@example.com",
           total_paid_wages: 1000.0,
+          run_id: 1,
         },
         {
           fein: 987654321,
@@ -112,6 +115,7 @@ describe("MyuiEmployerService", () => {
           employer_phone: "098-765-4321",
           employer_email: "test2@example.com",
           total_paid_wages: 2000.0,
+          run_id: 1,
         },
       ];
 
@@ -137,6 +141,7 @@ describe("MyuiEmployerService", () => {
           employer_phone: "123-456-7890",
           employer_email: "test1@example.com",
           total_paid_wages: 1000.0,
+          run_id: 1,
         },
       ];
 
@@ -162,6 +167,7 @@ describe("MyuiEmployerService", () => {
             employer_phone: "123-456-7890",
             employer_email: "test@example.com",
             total_paid_wages: 1000.0,
+            run_id: 1,
           },
         ],
       };

@@ -3,6 +3,8 @@ export interface IService<T> {
   insertMany(rows: T[]): Promise<any>;
   readAll(): Promise<any>;
   readById(id: number): Promise<any>;
+  readByRunId(runId: number): Promise<any>;
   update(id: number, row: T): Promise<any>;
   delete(id: number): Promise<any>;
+  genreateId(): Promise<number>;
 }

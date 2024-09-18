@@ -12,9 +12,15 @@ import { Readable } from "stream";
 import { IrsCsvRow } from "../../layers/service-layer/interface/irs.csv.row";
 import { IrsEmployerService } from "../../layers/service-layer/service/irs.employer.service";
 import { MyuiEmployerService } from "../../layers/service-layer/service/myui.employer.service";
+import { ReportJobRunService } from "../../layers/service-layer/service/report.job.run.service";
 import { IService } from "../../layers/service-layer/contract/iservice";
 import logger from "../../layers/service-layer/config/logger.config";
 import { MyuiCsvRow } from "../../layers/service-layer/interface/myui.csv.row";
+import { ReportJobRun } from "../../layers/service-layer/interface/report.job.run";
+import { ReportJobService } from "../../layers/service-layer/service/report.job.service";
+import { ReportJob } from "../../layers/service-layer/interface/report.job";
+import { ReportRunStatusService } from "../../layers/service-layer/service/report.run.status.service";
+import { ReportJobRunStatus } from "../../layers/service-layer/enum/report.job.run.status";
 
 const s3 = new S3({
   region: "us-west-2",
@@ -25,13 +31,14 @@ const sns = new SNS({
 
 function processCsvData<T>(
   csvData: any,
+  runId: number,
   resolve: (value: T[]) => void,
   reject: (reason?: any) => void,
 ): void {
   const rows: T[] = [];
   csvData
     .pipe(csv())
-    .on("data", (data: T) => rows.push(data))
+    .on("data", (data: T) => rows.push({ ...data, run_id: runId }))
     .on("end", () => resolve(rows))
     .on("error", (error: Error) => {
       logger.error("Error processing CSV data", error);
@@ -41,15 +48,46 @@ function processCsvData<T>(
 
 const extractCsvData = (
   csvData: Readable,
+  runId: number,
   type: string,
 ): Promise<IrsCsvRow[]> => {
   return new Promise((resolve, reject) => {
     if (type === "irs") {
-      processCsvData<IrsCsvRow>(csvData, resolve, reject);
+      processCsvData<IrsCsvRow>(csvData, runId, resolve, reject);
     } else if (type === "myui") {
-      processCsvData<MyuiCsvRow>(csvData, resolve, reject);
+      processCsvData<MyuiCsvRow>(csvData, runId, resolve, reject);
     }
   });
+};
+
+const readAll = async (service: IService<IrsCsvRow | MyuiCsvRow>) => {
+  const result = await service.readAll();
+  const rows = result.recordset;
+  const payload = {
+    size: rows.length,
+    rows,
+  };
+  return payload;
+};
+
+const generateReportRunId = async (
+  service: IService<ReportJobRun>,
+  job_id: number | undefined,
+) => {
+  const run_id = await service.genreateId();
+  await service.insert({
+    run_id,
+    run_name: "IRS_940_REPORT",
+    run_description: "Run to generate IRS 940 report",
+    job_id,
+  });
+  const reportRunStatusService = new ReportRunStatusService();
+  const statusResult = await reportRunStatusService.insert({
+    run_id,
+    run_status: ReportJobRunStatus.STARTED,
+    run_message: "Report run started",
+  });
+  return statusResult;
 };
 
 /**
@@ -97,41 +135,81 @@ export const handler = async (
       }
 
       let service: IService<IrsCsvRow | MyuiCsvRow>;
-
+      const reportJobRunStatusService = new ReportRunStatusService();
+      const runId = await reportJobRunStatusService.retrieveRunId();
       switch (serviceType) {
         case "irs":
+          await reportJobRunStatusService.insert({
+            run_id: runId,
+            run_status: ReportJobRunStatus.IRS_STAGE_STARTED,
+            run_message: "IRS data stage started",
+          });
           service = new IrsEmployerService();
+          const irsRows = await extractCsvData(csvData, runId, serviceType);
+          const irsResult = await service.insertMany(irsRows);
+          logger.info(`Inserted rows ${irsResult}`);
+          await reportJobRunStatusService.insert({
+            run_id: runId,
+            run_status: ReportJobRunStatus.IRS_STAGE_COMPLETED,
+            run_message: "IRS data stage completed",
+          });
           break;
         case "myui":
+          await reportJobRunStatusService.insert({
+            run_id: runId,
+            run_status: ReportJobRunStatus.MYUI_STAGE_STARTED,
+            run_message: "MYUI data stage started",
+          });
           service = new MyuiEmployerService();
+          const myuiRows = await extractCsvData(csvData, runId, serviceType);
+          const myuiResult = await service.insertMany(myuiRows);
+          logger.info(`Inserted rows ${myuiResult}`);
+          await reportJobRunStatusService.insert({
+            run_id: runId,
+            run_status: ReportJobRunStatus.MYUI_STAGE_COMPLETED,
+            run_message: "MYUI data stage completed",
+          });
           break;
         default:
           throw new Error(`Invalid service type: ${serviceType}`);
       }
-
-      const rows = await extractCsvData(csvData, serviceType);
-      const result = await service.insertMany(rows);
-      logger.info(`Inserted rows ${result}`);
+      const isStageCompleted =
+        await reportJobRunStatusService.isStageCompleted(runId);
+      if (isStageCompleted) {
+        // fire an SNS event to trigger the next stage
+        const snsParams = {
+          Message: JSON.stringify({
+            type: "trigger-compare",
+          }),
+          TopicArn: process.env.SNS_TOPIC_ARN,
+        };
+        await sns.publish(snsParams);
+      }
       callback(null, "Data inserted successfully");
     } else {
       // Process non-SNS event
-      let service: IService<IrsCsvRow | MyuiCsvRow>;
+      let service: IService<IrsCsvRow | MyuiCsvRow | ReportJob | ReportJobRun>;
+      let payload: any;
       switch (event?.type) {
-        case "irs":
+        case "irs-read-all":
           service = new IrsEmployerService();
+          payload = await readAll(service);
           break;
-        case "myui":
+        case "myui-read-all":
           service = new MyuiEmployerService();
+          payload = await readAll(service);
+          break;
+        case "generate-report-run-id":
+          const reportJobService = new ReportJobService();
+          const reportJobResult =
+            await reportJobService.readByJobName("IRS_940_JOB");
+          const reportJob = reportJobResult?.recordset[0];
+          service = new ReportJobRunService();
+          payload = await generateReportRunId(service, reportJob?.job_id);
           break;
         default:
           throw new Error(`Invalid event type: ${event?.type}`);
       }
-      const result = await service.readAll();
-      const rows = result.recordset;
-      const payload = {
-        size: rows.length,
-        rows,
-      };
       callback(null, JSON.stringify(payload));
     }
   } catch (error: any) {

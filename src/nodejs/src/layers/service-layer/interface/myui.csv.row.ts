@@ -9,5 +9,6 @@ export interface MyuiCsvRow {
   employer_phone: string;
   employer_email: string;
   total_paid_wages: number;
+  run_id?: number;
   // Add more columns as needed
 }
