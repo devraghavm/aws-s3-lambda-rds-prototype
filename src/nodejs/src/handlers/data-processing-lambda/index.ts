@@ -13,11 +13,13 @@ export const handler = async (
   callback: Callback,
 ) => {
   try {
+    console.log("Received event", JSON.stringify(event, null, 2));
     // Process SNS event
     if (event.Records && event.Records[0].Sns) {
       const snsEvent = event as SNSEvent;
       const snsMessage = JSON.parse(snsEvent.Records[0].Sns.Message);
-      const { type } = JSON.parse(snsMessage.Message);
+      console.log("Received SNS message", JSON.stringify(snsMessage, null, 2));
+      const { type } = snsMessage;
       logger.info(`Processing type: ${type}`);
       switch (type) {
         case "trigger-compare":

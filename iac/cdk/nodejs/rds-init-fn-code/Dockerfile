@@ -6,6 +6,7 @@ RUN npm install --only=production
 COPY index.js ./
 COPY database.sql ./
 COPY script.sql ./
-COPY triggers.sql ./
+COPY create_trigger.sql ./
+COPY drop_trigger.sql ./
 
 CMD [ "index.handler" ]

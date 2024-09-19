@@ -207,6 +207,16 @@ export const handler = async (
           service = new ReportJobRunService();
           payload = await generateReportRunId(service, reportJob?.job_id);
           break;
+        case "mark-run-id-completed":
+          logger.info("Marking run id as completed");
+          const reportJobRunStatusService = new ReportRunStatusService();
+          const runId = await reportJobRunStatusService.retrieveRunId();
+          payload = await reportJobRunStatusService.insert({
+            run_id: runId,
+            run_status: ReportJobRunStatus.COMPLETED,
+            run_message: "Report run completed",
+          });
+          break;
         default:
           throw new Error(`Invalid event type: ${event?.type}`);
       }

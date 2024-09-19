@@ -97,15 +97,6 @@ BEGIN
   );
 END;
 
--- create a trigger to insert audit record into ReportRunAudit table
-IF EXISTS (SELECT *
-FROM sys.triggers
-WHERE name = 'ReportRunAuditTrigger')
-BEGIN
-  -- Drop the trigger
-  DROP TRIGGER ReportRunAuditTrigger;
-END;
-
 -- Create the IrsEmployerData table
 IF NOT EXISTS (SELECT *
 FROM sys.tables
@@ -127,14 +118,6 @@ BEGIN
     PRIMARY KEY(fein, run_id),
     FOREIGN KEY(run_id) REFERENCES ReportJobRun(run_id)
   );
-END;
-
-IF EXISTS (SELECT *
-FROM sys.tables
-WHERE name = 'IrsEmployerData')
-BEGIN
-  SELECT *
-  from IrsEmployerData;
 END;
 
 -- Create the MyuiEmployerData table

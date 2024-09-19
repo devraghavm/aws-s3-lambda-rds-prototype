@@ -36,16 +36,21 @@ exports.handler = async (e) => {
       .toString();
     const sqlResult = await query(pool, sqlScript);
 
-    const triggersScript = fs
-      .readFileSync(path.join(__dirname, 'triggers.sql'))
+    const dropTriggerScript = fs
+      .readFileSync(path.join(__dirname, 'drop_trigger.sql'))
       .toString();
-    const triggersResult = await query(pool, triggersScript);
+    await query(pool, dropTriggerScript);
+
+    const createTriggerScript = fs
+      .readFileSync(path.join(__dirname, 'create_trigger.sql'))
+      .toString();
+    await query(pool, createTriggerScript);
 
     return {
       status: 'OK',
       results: `Database and tables created successfully: ${databaseResult} ${JSON.stringify(
         sqlResult
-      )} ${triggersResult}`,
+      )}`,
     };
   } catch (err) {
     console.error(err);
