@@ -8,6 +8,7 @@ import { MyuiCsvRow } from "../interface/myui.csv.row";
 import IrsEmployerService from "./irs.employer.service";
 import MyuiEmployerService from "./myui.employer.service";
 import * as sql from "mssql";
+import { json2csv } from "json-2-csv";
 
 export class IrsCompareService implements IService<IrsEmployerCompareData> {
   async insert(row: IrsEmployerCompareData): Promise<any> {
@@ -70,8 +71,37 @@ export class IrsCompareService implements IService<IrsEmployerCompareData> {
   async readById(id: number): Promise<any> {
     throw new Error("Method not implemented.");
   }
-  async readByRunId(runId: number): Promise<any> {
-    throw new Error("Method not implemented.");
+  async readByRunId(runId: number): Promise<IrsEmployerCompareData[]> {
+    const pool = await createConnectionPool();
+    try {
+      logger.info("Reading data");
+      const request = pool.request();
+      request.input("run_id", sql.Int, runId);
+      let result: sql.IResult<IrsEmployerCompareData[]> = await request.query(`
+        SELECT 
+          fein,
+          employer_name,
+          employer_address,
+          employer_city,
+          employer_state,
+          employer_zip,
+          employer_phone,
+          employer_email,
+          total_paid_wages,
+          compare_result,
+          run_id
+        FROM IrsEmployerCompareData
+        WHERE run_id = @run_id
+        ORDER BY compare_result
+      `);
+      logger.info(`Read data ${result?.recordset}`);
+      return result.recordset;
+    } catch (error) {
+      logger.error("Error reading data", error);
+      throw error;
+    } finally {
+      await pool.close();
+    }
   }
   async update(id: number, row: IrsEmployerCompareData): Promise<any> {
     throw new Error("Method not implemented.");
@@ -82,6 +112,7 @@ export class IrsCompareService implements IService<IrsEmployerCompareData> {
   async genreateId(): Promise<number> {
     throw new Error("Method not implemented.");
   }
+
   async compare(runId: number): Promise<any> {
     const irsEmployerService = new IrsEmployerService();
     const irsData: IrsCsvRow[] = (await irsEmployerService.readByRunId(runId))
@@ -112,5 +143,12 @@ export class IrsCompareService implements IService<IrsEmployerCompareData> {
     );
     const result = await this.insertMany(irsEmployerCompareData);
     return result;
+  }
+
+  async generateCsv(
+    irsEmployerCompareDatas: IrsEmployerCompareData[],
+  ): Promise<string> {
+    const csv = json2csv(irsEmployerCompareDatas, { excludeKeys: ["run_id"] });
+    return csv;
   }
 }

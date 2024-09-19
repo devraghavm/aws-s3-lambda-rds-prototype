@@ -176,6 +176,11 @@ export const handler = async (
       const isStageCompleted =
         await reportJobRunStatusService.isStageCompleted(runId);
       if (isStageCompleted) {
+        await reportJobRunStatusService.insert({
+          run_id: runId,
+          run_status: ReportJobRunStatus.IRS_COMPARE_INITIATED,
+          run_message: "IRS compare initiated",
+        });
         // fire an SNS event to trigger the next stage
         const snsParams = {
           Message: JSON.stringify({

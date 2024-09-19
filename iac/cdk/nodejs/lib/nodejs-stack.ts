@@ -27,6 +27,7 @@ import {
   LambdaFunction,
 } from 'aws-cdk-lib/aws-events-targets';
 import { RuleTargetInput } from 'aws-cdk-lib/aws-events';
+import { S3 } from 'aws-cdk-lib/aws-ses-actions';
 
 export class NodejsStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -240,6 +241,7 @@ export class NodejsStack extends cdk.Stack {
           DB_NAME: DATABASE_NAME,
           DB_SECRET_ARN: dbInstance.secret?.secretFullArn || '',
           SNS_TOPIC_ARN: dataProcessingTopic.topicArn,
+          S3_BUCKET_NAME: s3Bucket.bucketName,
         },
         vpc,
         vpcSubnets: vpc.selectSubnets({
@@ -257,5 +259,7 @@ export class NodejsStack extends cdk.Stack {
 
     // Allow the dataProcessingLambdaFn to publish to the SNS topic
     dataProcessingTopic.grantPublish(dataProcessingLambdaFn);
+    // Allow the dataProcessingLambdaFn to read and write from the S3 bucket
+    s3Bucket.grantReadWrite(dataProcessingLambdaFn);
   }
 }

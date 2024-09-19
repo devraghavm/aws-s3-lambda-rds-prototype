@@ -179,4 +179,27 @@ export class ReportRunStatusService implements IService<ReportRunStatus> {
       await pool.close();
     }
   }
+
+  async isCompareCompleted(runId: number): Promise<boolean> {
+    const pool = await createConnectionPool();
+    try {
+      const request = pool.request();
+      request.input("run_id", sql.Int, runId);
+      const result = await request.query(
+        `
+        SELECT count(*) as run_count
+        FROM ReportRunStatus
+        WHERE run_id = @run_id
+        AND run_status = 'IRS_COMPARE_COMPLETED'
+        `,
+      );
+      logger.info(`Retrieved run status ${result}`);
+      return result.recordset[0].run_count === 1;
+    } catch (error) {
+      logger.error(`Error retrieving run status ${error}`);
+      throw error;
+    } finally {
+      await pool.close();
+    }
+  }
 }

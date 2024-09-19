@@ -32,6 +32,7 @@
   "dependencies": {
     "aws-lambda": "^1.0.7",
     "csv-parser": "^3.0.0",
+    "json-2-csv": "^5.5.5",
     "mssql": "^11.0.1",
     "winston": "^3.14.2"
   },
