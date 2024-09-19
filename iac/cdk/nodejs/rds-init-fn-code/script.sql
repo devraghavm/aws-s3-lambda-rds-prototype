@@ -142,4 +142,28 @@ BEGIN
     FOREIGN KEY (run_id) REFERENCES ReportJobRun(run_id)
   );
 END;
+
+-- Create the IrsEmployerCompareData table
+IF NOT EXISTS (SELECT *
+FROM sys.tables
+WHERE name = 'IrsEmployerCompareData')
+BEGIN
+  -- Create the table
+  CREATE TABLE IrsEmployerCompareData
+  (
+    fein INT NOT NULL,
+    employer_name VARCHAR(255) NOT NULL,
+    employer_address VARCHAR(255) NOT NULL,
+    employer_city VARCHAR(100) NOT NULL,
+    employer_state VARCHAR(50) NOT NULL,
+    employer_zip VARCHAR(20) NOT NULL,
+    employer_phone VARCHAR(20) NOT NULL,
+    employer_email VARCHAR(100) NOT NULL,
+    total_paid_wages DECIMAL(18,2) NOT NULL,
+    compare_result VARCHAR(50) NOT NULL,
+    run_id INT NOT NULL,
+    PRIMARY KEY(fein, run_id),
+    FOREIGN KEY(run_id) REFERENCES ReportJobRun(run_id)
+  );
+END;
 -- End of script

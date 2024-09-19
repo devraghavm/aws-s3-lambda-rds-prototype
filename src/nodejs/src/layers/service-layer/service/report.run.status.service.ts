@@ -124,6 +124,33 @@ export class ReportRunStatusService implements IService<ReportRunStatus> {
       await pool.close();
     }
   }
+
+  async readByRunIdAndStatus(
+    runId: number,
+    status: string,
+  ): Promise<ReportRunStatus> {
+    const pool = await createConnectionPool();
+    try {
+      const request = pool.request();
+      request.input("run_id", sql.Int, runId);
+      request.input("run_status", sql.VarChar, status);
+      const query = `
+        SELECT * 
+        FROM ReportRunStatus 
+        WHERE run_id = @run_id
+        AND run_status = @run_status
+        `;
+      const result = await request.query(query);
+      logger.info(`Read by run id and status ${JSON.stringify(result)}`);
+      return result.recordset[0];
+    } catch (error) {
+      logger.error(`Error reading data ${error}`);
+      throw error;
+    } finally {
+      await pool.close();
+    }
+  }
+
   async update(id: number, row: ReportRunStatus): Promise<any> {
     throw new Error("Method not implemented.");
   }
