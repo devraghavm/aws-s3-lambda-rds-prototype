@@ -2,11 +2,11 @@ import { handler } from "./index";
 import { S3 } from "@aws-sdk/client-s3";
 import { Context, Callback, SNSEvent } from "aws-lambda";
 import { Readable } from "stream";
-import { IrsEmployerService } from "../../layers/service-layer/service/irs.employer.service";
-import { MyuiEmployerService } from "../../layers/service-layer/service/myui.employer.service";
-import { ReportJobRunService } from "../../layers/service-layer/service/report.job.run.service";
-import { IrsCsvRow } from "../../layers/service-layer/interface/irs.csv.row";
-import { MyuiCsvRow } from "../../layers/service-layer/interface/myui.csv.row";
+import { IrsEmployerService } from "../service-layer/service/irs.employer.service";
+import { MyuiEmployerService } from "../service-layer/service/myui.employer.service";
+import { ReportJobRunService } from "../service-layer/service/report.job.run.service";
+import { IrsCsvRow } from "../service-layer/interface/irs.csv.row";
+import { MyuiCsvRow } from "../service-layer/interface/myui.csv.row";
 
 jest.mock("@aws-sdk/client-s3");
 jest.mock("@aws-sdk/client-sns");

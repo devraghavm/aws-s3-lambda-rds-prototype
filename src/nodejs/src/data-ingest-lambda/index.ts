@@ -9,18 +9,18 @@ import { S3 } from "@aws-sdk/client-s3";
 import { SNS } from "@aws-sdk/client-sns";
 import csv from "csv-parser";
 import { Readable } from "stream";
-import { IrsCsvRow } from "../../layers/service-layer/interface/irs.csv.row";
-import { IrsEmployerService } from "../../layers/service-layer/service/irs.employer.service";
-import { MyuiEmployerService } from "../../layers/service-layer/service/myui.employer.service";
-import { ReportJobRunService } from "../../layers/service-layer/service/report.job.run.service";
-import { IService } from "../../layers/service-layer/contract/iservice";
-import logger from "../../layers/service-layer/config/logger.config";
-import { MyuiCsvRow } from "../../layers/service-layer/interface/myui.csv.row";
-import { ReportJobRun } from "../../layers/service-layer/interface/report.job.run";
-import { ReportJobService } from "../../layers/service-layer/service/report.job.service";
-import { ReportJob } from "../../layers/service-layer/interface/report.job";
-import { ReportRunStatusService } from "../../layers/service-layer/service/report.run.status.service";
-import { ReportJobRunStatus } from "../../layers/service-layer/enum/report.job.run.status";
+import { IrsCsvRow } from "../service-layer/interface/irs.csv.row";
+import { IrsEmployerService } from "../service-layer/service/irs.employer.service";
+import { MyuiEmployerService } from "../service-layer/service/myui.employer.service";
+import { ReportJobRunService } from "../service-layer/service/report.job.run.service";
+import { IService } from "../service-layer/contract/iservice";
+import logger from "../service-layer/config/logger.config";
+import { MyuiCsvRow } from "../service-layer/interface/myui.csv.row";
+import { ReportJobRun } from "../service-layer/interface/report.job.run";
+import { ReportJobService } from "../service-layer/service/report.job.service";
+import { ReportJob } from "../service-layer/interface/report.job";
+import { ReportRunStatusService } from "../service-layer/service/report.run.status.service";
+import { ReportJobRunStatus } from "../service-layer/enum/report.job.run.status";
 
 const s3 = new S3({
   region: "us-west-2",

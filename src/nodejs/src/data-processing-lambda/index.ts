@@ -1,10 +1,10 @@
 import { S3 } from "@aws-sdk/client-s3";
 import { SNS } from "@aws-sdk/client-sns";
 import { SNSEvent, Context, Callback } from "aws-lambda";
-import logger from "../../layers/service-layer/config/logger.config";
-import { ReportRunStatusService } from "../../layers/service-layer/service/report.run.status.service";
-import { ReportJobRunStatus } from "../../layers/service-layer/enum/report.job.run.status";
-import { IrsCompareService } from "../../layers/service-layer/service/irs.compare.service";
+import logger from "../service-layer/config/logger.config";
+import { ReportRunStatusService } from "../service-layer/service/report.run.status.service";
+import { ReportJobRunStatus } from "../service-layer/enum/report.job.run.status";
+import { IrsCompareService } from "../service-layer/service/irs.compare.service";
 
 const s3 = new S3({
   region: "us-west-2",

@@ -160,13 +160,13 @@ export class NodejsStack extends cdk.Stack {
 
     const dependenciesLayer = new LayerVersion(this, 'DependenciesLayer', {
       code: Code.fromAsset(
-        path.join(__dirname, '..', 'dist/layers/deps-layer')
+        path.join(__dirname, '..', 'dist/lambda-layer/deps-layer')
       ),
     });
 
     const servicesLayer = new LayerVersion(this, 'ServicesLayer', {
       code: Code.fromAsset(
-        path.join(__dirname, '..', 'dist/src/layers/service-layer')
+        path.join(__dirname, '..', 'dist/lambda-layer/service-layer')
       ),
     });
 
@@ -174,7 +174,7 @@ export class NodejsStack extends cdk.Stack {
       entry: path.join(
         __dirname,
         '..',
-        'dist/src/handlers/data-ingest-lambda',
+        'dist/lambda-code/data-ingest-lambda',
         'index.js'
       ),
       ...nodeJsFunctionProps,
@@ -231,7 +231,7 @@ export class NodejsStack extends cdk.Stack {
         entry: path.join(
           __dirname,
           '..',
-          'dist/src/handlers/data-processing-lambda',
+          'dist/lambda-code/data-processing-lambda',
           'index.js'
         ),
         ...nodeJsFunctionProps,
