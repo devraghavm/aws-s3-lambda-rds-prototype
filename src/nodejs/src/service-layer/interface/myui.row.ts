@@ -1,4 +1,4 @@
-export interface IrsEmployerCompareData {
+export interface MyuiRow {
   byte_count: string;
   tc150_state_code: string;
   ein: string;
@@ -18,6 +18,5 @@ export interface IrsEmployerCompareData {
   cross_reference_ein: string;
   state_reporting_number: string;
   form_indicator: string;
-  compare_result: string;
   run_id?: number;
 }

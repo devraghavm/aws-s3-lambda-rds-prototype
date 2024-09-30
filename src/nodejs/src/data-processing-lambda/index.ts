@@ -83,13 +83,13 @@ export const handler = async (
           });
           const irsEmployerCompareDatas =
             await irsCompareService.readByRunId(runId);
-          const csv = await irsCompareService.generateCsv(
+          const xml = await irsCompareService.generateXml(
             irsEmployerCompareDatas,
           );
           const s3Params = {
             Bucket: process.env.S3_BUCKET_NAME,
-            Key: `report/${runId}.csv`,
-            Body: csv,
+            Key: `report/${runId}.xml`,
+            Body: xml,
           };
           await s3.putObject(s3Params);
           await reportJobRunStatusService.insert({

@@ -9,18 +9,20 @@ import { S3 } from "@aws-sdk/client-s3";
 import { SNS } from "@aws-sdk/client-sns";
 import csv from "csv-parser";
 import { Readable } from "stream";
-import { IrsCsvRow } from "../service-layer/interface/irs.csv.row";
+import { IrsRow } from "../service-layer/interface/irs.row";
 import { IrsEmployerService } from "../service-layer/service/irs.employer.service";
 import { MyuiEmployerService } from "../service-layer/service/myui.employer.service";
 import { ReportJobRunService } from "../service-layer/service/report.job.run.service";
 import { IService } from "../service-layer/contract/iservice";
 import logger from "../service-layer/config/logger.config";
-import { MyuiCsvRow } from "../service-layer/interface/myui.csv.row";
+import { MyuiRow } from "../service-layer/interface/myui.row";
 import { ReportJobRun } from "../service-layer/interface/report.job.run";
 import { ReportJobService } from "../service-layer/service/report.job.service";
 import { ReportJob } from "../service-layer/interface/report.job";
 import { ReportRunStatusService } from "../service-layer/service/report.run.status.service";
 import { ReportJobRunStatus } from "../service-layer/enum/report.job.run.status";
+import { IDataReader } from "../service-layer/adapter/data.reader";
+import { CtrlDataReader } from "../service-layer/adapter/ctrl.data.reader";
 
 const s3 = new S3({
   region: "us-west-2",
@@ -29,38 +31,7 @@ const sns = new SNS({
   region: "us-west-2",
 });
 
-function processCsvData<T>(
-  csvData: any,
-  runId: number,
-  resolve: (value: T[]) => void,
-  reject: (reason?: any) => void,
-): void {
-  const rows: T[] = [];
-  csvData
-    .pipe(csv())
-    .on("data", (data: T) => rows.push({ ...data, run_id: runId }))
-    .on("end", () => resolve(rows))
-    .on("error", (error: Error) => {
-      logger.error("Error processing CSV data", error);
-      reject(error);
-    });
-}
-
-const extractCsvData = (
-  csvData: Readable,
-  runId: number,
-  type: string,
-): Promise<IrsCsvRow[]> => {
-  return new Promise((resolve, reject) => {
-    if (type === "irs") {
-      processCsvData<IrsCsvRow>(csvData, runId, resolve, reject);
-    } else if (type === "myui") {
-      processCsvData<MyuiCsvRow>(csvData, runId, resolve, reject);
-    }
-  });
-};
-
-const readAll = async (service: IService<IrsCsvRow | MyuiCsvRow>) => {
+const readAll = async (service: IService<IrsRow | MyuiRow>) => {
   const result = await service.readAll();
   const rows = result.recordset;
   const payload = {
@@ -121,8 +92,8 @@ export const handler = async (
       const s3Object = await s3.getObject(params);
 
       logger.info(`Retrieved object from S3: ${s3Object}`);
-      const csvData = s3Object.Body as Readable;
-      logger.info(`Parsing CSV data: ${csvData}`);
+      const fileData = s3Object.Body as Readable;
+      logger.info(`Parsing CSV data: ${fileData}`);
 
       const serviceType = objectKey.includes("irs")
         ? "irs"
@@ -134,7 +105,7 @@ export const handler = async (
         throw new Error(`Invalid object key: ${objectKey}`);
       }
 
-      let service: IService<IrsCsvRow | MyuiCsvRow>;
+      let service: IService<IrsRow | MyuiRow>;
       const reportJobRunStatusService = new ReportRunStatusService();
       const runId = await reportJobRunStatusService.retrieveRunId();
       switch (serviceType) {
@@ -145,7 +116,11 @@ export const handler = async (
             run_message: "IRS data stage started",
           });
           service = new IrsEmployerService();
-          const irsRows = await extractCsvData(csvData, runId, serviceType);
+          const irsRows = await new CtrlDataReader().readData(
+            fileData,
+            runId,
+            serviceType,
+          );
           const irsResult = await service.insertMany(irsRows);
           logger.info(`Inserted rows ${irsResult}`);
           await reportJobRunStatusService.insert({
@@ -161,7 +136,11 @@ export const handler = async (
             run_message: "MYUI data stage started",
           });
           service = new MyuiEmployerService();
-          const myuiRows = await extractCsvData(csvData, runId, serviceType);
+          const myuiRows = await new CtrlDataReader().readData(
+            fileData,
+            runId,
+            serviceType,
+          );
           const myuiResult = await service.insertMany(myuiRows);
           logger.info(`Inserted rows ${myuiResult}`);
           await reportJobRunStatusService.insert({
@@ -193,7 +172,7 @@ export const handler = async (
       callback(null, "Data inserted successfully");
     } else {
       // Process non-SNS event
-      let service: IService<IrsCsvRow | MyuiCsvRow | ReportJob | ReportJobRun>;
+      let service: IService<IrsRow | MyuiRow | ReportJob | ReportJobRun>;
       let payload: any;
       switch (event?.type) {
         case "irs-read-all":

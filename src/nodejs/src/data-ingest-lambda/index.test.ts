@@ -5,8 +5,8 @@ import { Readable } from "stream";
 import { IrsEmployerService } from "../service-layer/service/irs.employer.service";
 import { MyuiEmployerService } from "../service-layer/service/myui.employer.service";
 import { ReportJobRunService } from "../service-layer/service/report.job.run.service";
-import { IrsCsvRow } from "../service-layer/interface/irs.csv.row";
-import { MyuiCsvRow } from "../service-layer/interface/myui.csv.row";
+import { IrsRow } from "../service-layer/interface/irs.row";
+import { MyuiRow } from "../service-layer/interface/myui.row";
 
 jest.mock("@aws-sdk/client-s3");
 jest.mock("@aws-sdk/client-sns");
@@ -130,7 +130,7 @@ describe("data-ingest-lambda handler", () => {
   });
 
   it("should process non-SNS event and return all rows from the IRS database", async () => {
-    const mockRows: IrsCsvRow[] = [
+    const mockRows: IrsRow[] = [
       {
         fein: 123456789,
         employer_name: "Test Employer",
@@ -161,7 +161,7 @@ describe("data-ingest-lambda handler", () => {
   });
 
   it("should process non-SNS event and return all rows from the MyUI database", async () => {
-    const mockRows: MyuiCsvRow[] = [
+    const mockRows: MyuiRow[] = [
       {
         fein: 123456789,
         employer_name: "Test Employer",

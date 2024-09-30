@@ -1,6 +1,6 @@
 import { MyuiEmployerService } from "../myui.employer.service";
 import { createConnectionPool } from "../../config/db.config";
-import { MyuiCsvRow } from "../../interface/myui.csv.row";
+import { MyuiRow } from "../../interface/myui.row";
 import * as sql from "mssql";
 
 jest.mock("./config/db.config");
@@ -44,7 +44,7 @@ describe("MyuiEmployerService", () => {
 
   describe("insert", () => {
     it("should insert a row into the database", async () => {
-      const row: MyuiCsvRow = {
+      const row: MyuiRow = {
         fein: 123456789,
         employer_name: "Test Employer",
         employer_address: "123 Test St",
@@ -69,7 +69,7 @@ describe("MyuiEmployerService", () => {
     });
 
     it("should rollback transaction if an error occurs", async () => {
-      const row: MyuiCsvRow = {
+      const row: MyuiRow = {
         fein: 123456789,
         employer_name: "Test Employer",
         employer_address: "123 Test St",
@@ -92,7 +92,7 @@ describe("MyuiEmployerService", () => {
 
   describe("insertMany", () => {
     it("should insert multiple rows into the database", async () => {
-      const rows: MyuiCsvRow[] = [
+      const rows: MyuiRow[] = [
         {
           fein: 123456789,
           employer_name: "Test Employer 1",
@@ -130,7 +130,7 @@ describe("MyuiEmployerService", () => {
     });
 
     it("should rollback transaction if an error occurs", async () => {
-      const rows: MyuiCsvRow[] = [
+      const rows: MyuiRow[] = [
         {
           fein: 123456789,
           employer_name: "Test Employer 1",

@@ -27,7 +27,6 @@ import {
   LambdaFunction,
 } from 'aws-cdk-lib/aws-events-targets';
 import { RuleTargetInput } from 'aws-cdk-lib/aws-events';
-import { S3 } from 'aws-cdk-lib/aws-ses-actions';
 
 export class NodejsStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -124,7 +123,7 @@ export class NodejsStack extends cdk.Stack {
       new s3n.SnsDestination(snsTopic),
       {
         prefix: 'irs/',
-        suffix: '.csv',
+        suffix: '.txt',
       }
     );
 
@@ -133,7 +132,7 @@ export class NodejsStack extends cdk.Stack {
       new s3n.SnsDestination(snsTopic),
       {
         prefix: 'myui/',
-        suffix: '.csv',
+        suffix: '.txt',
       }
     );
 
@@ -151,6 +150,7 @@ export class NodejsStack extends cdk.Stack {
           'csv-parser', // Use the 'csv-parser' available in the Layer
           'mssql', // Use the 'mssql' available in the Layer
           'winston', // Use the 'winston' available in the Layer
+          'fast-xml-parser', // Use the 'fast-xml-parser' available in the Layer
         ],
       },
       runtime: Runtime.NODEJS_18_X,

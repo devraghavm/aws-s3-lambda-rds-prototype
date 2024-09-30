@@ -1,6 +1,6 @@
 import { IrsEmployerService } from "../irs.employer.service";
 import { createConnectionPool } from "../../config/db.config";
-import { IrsCsvRow } from "../../interface/irs.csv.row";
+import { IrsRow } from "../../interface/irs.row";
 import * as sql from "mssql";
 
 jest.mock("./config/db.config");
@@ -44,7 +44,7 @@ describe("IrsEmployerService", () => {
 
   describe("insert", () => {
     it("should insert a row into the database", async () => {
-      const row: IrsCsvRow = {
+      const row: IrsRow = {
         fein: 123456789,
         employer_name: "Test Employer",
         employer_address: "123 Test St",
@@ -69,7 +69,7 @@ describe("IrsEmployerService", () => {
     });
 
     it("should rollback transaction if an error occurs", async () => {
-      const row: IrsCsvRow = {
+      const row: IrsRow = {
         fein: 123456789,
         employer_name: "Test Employer",
         employer_address: "123 Test St",
@@ -92,7 +92,7 @@ describe("IrsEmployerService", () => {
 
   describe("insertMany", () => {
     it("should insert multiple rows into the database", async () => {
-      const rows: IrsCsvRow[] = [
+      const rows: IrsRow[] = [
         {
           fein: 123456789,
           employer_name: "Test Employer 1",
@@ -130,7 +130,7 @@ describe("IrsEmployerService", () => {
     });
 
     it("should rollback transaction if an error occurs", async () => {
-      const rows: IrsCsvRow[] = [
+      const rows: IrsRow[] = [
         {
           fein: 123456789,
           employer_name: "Test Employer 1",
