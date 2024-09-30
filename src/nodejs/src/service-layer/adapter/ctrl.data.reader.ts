@@ -16,7 +16,7 @@ export class CtrlDataReader implements IDataReader<IrsRow[] | MyuiRow[]> {
         const rows: IrsRow[] = [];
         ctrlData
           .on("data", (data: string) => {
-            const row: IrsRow | MyuiRow = {
+            const row: IrsRow = {
               byte_count: data.slice(0, 4),
               tc150_state_code: data.slice(4, 6),
               ein: data.slice(6, 15),
@@ -49,7 +49,7 @@ export class CtrlDataReader implements IDataReader<IrsRow[] | MyuiRow[]> {
         const rows: MyuiRow[] = [];
         ctrlData
           .on("data", (data: string) => {
-            const row: IrsRow | MyuiRow = {
+            const row: MyuiRow = {
               byte_count: data.slice(0, 4),
               tc150_state_code: data.slice(4, 6),
               ein: data.slice(6, 15),
