@@ -12,16 +12,34 @@ cd aws-s3-lambda-rds-prototype/src/nodejs
 yarn install
 ```
 
-3. Run the below command to compile the source code and regenerate `dist` folder.
+3. Run the below command to clean the existing dist folder.
 
 ```sh
-yarn build
+yarn clean
 ```
 
-4. Run the below command to package all dependencies for `deps-layer` push.
+4. Run the below command to compile the `service-layer` source code and copy the output files to `dist` folder.
 
 ```sh
-yarn package
+yarn build-service-layer
+```
+
+5. Run the below command to compile the `deps-layer` source code and copy the output files to `dist` folder.
+
+```sh
+yarn build-deps-layer
+```
+
+6. Run the below command to compile the `data-ingest-lambda` source code and copy the output files to `dist` folder.
+
+```sh
+yarn build-data-ingest-lambda
+```
+
+7. Run the below command to compile the `data-processing-lambda` source code and copy the output files to `dist` folder.
+
+```sh
+yarn build-data-processing-lambda
 ```
 
 5.  (Optional) Run the below command to copy over `dist` folder to `iac/cdk/nodejs` for CDK buildout.
