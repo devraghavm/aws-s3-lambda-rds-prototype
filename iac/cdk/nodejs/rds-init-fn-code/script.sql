@@ -125,7 +125,7 @@ BEGIN
     state_reporting_number VARCHAR(15) NOT NULL,
     form_indicator VARCHAR(1) NOT NULL,
     run_id INT NOT NULL,
-    PRIMARY KEY(ein, run_id),
+    PRIMARY KEY(ein, state_reporting_number, run_id),
     FOREIGN KEY(run_id) REFERENCES ReportJobRun(run_id)
   );
 END;
@@ -164,7 +164,7 @@ BEGIN
     payment_sum_sch_h_415_or_prior VARCHAR(13) NOT NULL,
     payment_sum_sch_h_after_415 VARCHAR(13) NOT NULL,
     run_id INT NOT NULL,
-    PRIMARY KEY (ein, run_id),
+    PRIMARY KEY (ein, state_reporting_number, run_id),
     FOREIGN KEY (run_id) REFERENCES ReportJobRun(run_id)
   );
 END;
@@ -203,7 +203,7 @@ BEGIN
     payment_sum_sch_h_415_or_prior VARCHAR(13) NOT NULL,
     payment_sum_sch_h_after_415 VARCHAR(13) NOT NULL,
     run_id INT NOT NULL,
-    PRIMARY KEY(ein, run_id),
+    PRIMARY KEY(ein, state_reporting_number, run_id),
     FOREIGN KEY(run_id) REFERENCES ReportJobRun(run_id)
   );
 END;
